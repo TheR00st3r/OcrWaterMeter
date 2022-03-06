@@ -1,0 +1,46 @@
+﻿@page "/config"
+@using OcrWaterMeter.Shared
+@using System.Globalization
+@inject HttpClient Http
+
+<PageTitle>Configuration</PageTitle>
+
+<h1>Configuration</h1>
+
+@*<p>This component demonstrates fetching data from the server.</p>*@
+
+@if (loading)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	<h2>@waterMeter.Value m3</h2>
+
+
+	<div class="row">
+		<div class="col-3">
+
+			<div class="row">
+				<div class="col-12">
+					<label for="inputImageSrc" class="form-label">Image source</label>
+					<input type="text" class="form-control" id="inputImageSrc" @bind="ImageSrc">
+				</div>
+				
+				<div class="col-12">
+					<label for="inputImageAngle" class="form-label">Rotationangle</label>
+					<input type="number" class="form-control" id="inputImageAngle" @bind="ImageAngle">
+				</div>
+			</div>
+
+		</div>
+		<div class="col-9">
+
+			<img src="WaterMeter/Image/@ImageType.SrcImage" class="preview-image"/>
+			<img src="WaterMeter/Image/@ImageType.ProcessedImage?@processTime" class="preview-image"/>
+
+		</div>
+	</div>
+
+
+}
