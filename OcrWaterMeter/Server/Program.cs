@@ -2,13 +2,20 @@ using OcrWaterMeter.Server.Database;
 
 var liteDbName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WaterMeter.db");
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    WebRootPath = "wwwroot",
+    Args = args,
+});
 
 // Add services to the container.
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddLiteDb(liteDbName);
+
+
+builder.WebHost.UseStaticWebAssets();
 
 var app = builder.Build();
 

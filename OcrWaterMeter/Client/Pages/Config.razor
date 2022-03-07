@@ -19,28 +19,113 @@ else
 
 
 	<div class="row">
-		<div class="col-3">
+		<div class="col-6">
 
 			<div class="row">
-				<div class="col-12">
+				<div class="col-12 mb-3">
 					<label for="inputImageSrc" class="form-label">Image source</label>
 					<input type="text" class="form-control" id="inputImageSrc" @bind="ImageSrc">
 				</div>
-				
-				<div class="col-12">
+
+				<div class="col-12 mb-3">
 					<label for="inputImageAngle" class="form-label">Rotationangle</label>
 					<input type="number" class="form-control" id="inputImageAngle" @bind="ImageAngle">
+				</div>
+
+				<div class="col-6 mb-3">
+					<label for="inputCropOffsetHorizontal" class="form-label">Crop Offset Horizontal</label>
+					<input type="number" class="form-control" id="inputCropOffsetHorizontal" @bind="CropOffsetHorizontal">
+				</div>
+				<div class="col-6 mb-3">
+					<label for="inputCropOffsetVertical" class="form-label">Crop Offset Vertical</label>
+					<input type="number" class="form-control" id="inputCropOffsetVertical" @bind="CropOffsetVertical">
+				</div>
+
+				<div class="col-6 mb-3">
+					<label for="inputCropWidth" class="form-label">Crop Width</label>
+					<input type="number" class="form-control" id="inputCropWidth" @bind="CropWidth">
+				</div>
+				<div class="col-6 mb-3">
+					<label for="inputCropHeight" class="form-label">Crop Height</label>
+					<input type="number" class="form-control" id="inputCropHeight" @bind="CropHeight">
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="card border-success mb-3">
+					<div class="card-header bg-transparent">Digital Numbers</div>
+					<div class="card-body text-success">
+						@*<h5 class="card-title">Success card title</h5>*@
+						@*<p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>*@
+
+						<table>
+							<thead>
+								<tr>
+									<th>Id</th>
+									<th>Offset Horizontal</th>
+									<th>Offset Vertical</th>
+									<th>Width</th>
+									<th>Height</th>
+									<th>Image</th>
+									<th>Value</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach (var digitalNumber in DigitalNumbers)
+								{
+									<tr>
+										<td>
+											<input type="number" class="form-control" @bind="digitalNumber.Id" readonly>
+										</td>
+										<td>
+											<input type="number" class="form-control" @bind="digitalNumber.HorizontalOffset">
+										</td>
+										<td>
+											<input type="number" class="form-control" @bind="digitalNumber.VerticalOffset">
+										</td>
+										<td>
+											<input type="number" class="form-control" @bind="digitalNumber.Width">
+										</td>
+										<td>
+											<input type="number" class="form-control" @bind="digitalNumber.Height">
+										</td>
+										<td>
+											<img src="WaterMeter/Image/@ImageType.Number/@digitalNumber.Id/?@ProcessTime" class="preview-image" />
+										</td>
+										<td>
+											<input type="number" class="form-control" @bind="digitalNumber.Value" readonly>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+
+					</div>
+					<div class="card-footer bg-transparent border-success">
+						<button @onclick="AddNewDigitalNumber">Add Digital Number</button>
+					</div>
 				</div>
 			</div>
 
 		</div>
-		<div class="col-9">
+		<div class="col-6">
+			<div class="row">
+				<div class="col-12">
+					<img src="WaterMeter/Image/@ImageType.SrcImage" class="preview-image src-image" />
+				</div>
 
-			<img src="WaterMeter/Image/@ImageType.SrcImage" class="preview-image"/>
-			<img src="WaterMeter/Image/@ImageType.ProcessedImage?@processTime" class="preview-image"/>
+				<div class="col-12 ">
+					<div class="overlay-wrapper">
+						<img src="WaterMeter/Image/@ImageType.ProcessedImage?@ProcessTime" class="preview-image" />
+						@foreach (var digitalNumber in DigitalNumbers)
+						{
+							<div class="overlay-box" style="top:@(digitalNumber.VerticalOffset + "px");left:@(digitalNumber.HorizontalOffset + "px");width:@(digitalNumber.Width + "px");height:@(digitalNumber.Height + "px");">@digitalNumber.Id</div>
+						}
+					</div>
+				</div>
+
+			</div>
 
 		</div>
 	</div>
-
-
 }

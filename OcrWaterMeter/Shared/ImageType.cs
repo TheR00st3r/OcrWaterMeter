@@ -3,6 +3,7 @@
     public enum ImageType
     {
         SrcImage,
-        ProcessedImage
+        ProcessedImage,
+        Number
     }
 }
