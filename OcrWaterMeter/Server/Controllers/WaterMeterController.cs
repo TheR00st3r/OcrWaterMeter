@@ -4,6 +4,7 @@ using OcrWaterMeter.Server.Database;
 using OcrWaterMeter.Shared;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Tesseract;
 
@@ -157,7 +158,7 @@ namespace OcrWaterMeter.Server.Controllers
                 var image = imageCollection.FindOne(x => x.ImageType == ImageType.SrcImage);
 
 
-                if (image == null || image.Created < DateTime.Now.AddMinutes(-5))
+                if (image == null || image.Created < DateTime.Now.AddMinutes(-1))
                 {
                     var imageSrc = configCollection.FindOne(x => x.Key == ConfigParamters.ImageSrc);
                     using var httpClient = new HttpClient();
@@ -173,19 +174,16 @@ namespace OcrWaterMeter.Server.Controllers
 
                 }
 
-
-                //var configCollection = _DbContext.Context.GetCollection<ConfigValue>();
                 var rotate = float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.ImageAngle)?.Value ?? "0");
                 var offsetHorizontal = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropOffsetHorizontal)?.Value ?? "0");
                 var offsetVertical = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropOffsetVertical)?.Value ?? "0");
                 var sizeHorizontal = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropWidth)?.Value ?? "0");
                 var sizeVertical = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropHeight)?.Value ?? "0");
 
-                using var imageToClone = Image.Load(image.Image);
+                using var imageToClone = Image.Load<Rgba32>(image.Image);
                 using var rotateCopy = imageToClone.Clone(i => i.Rotate(RotateMode.Rotate180).Rotate(rotate));
 
 
-                //TODO Size after Rotate?
                 sizeHorizontal = sizeHorizontal <= 0 ? rotateCopy.Width - offsetHorizontal : sizeHorizontal;
                 sizeVertical = sizeVertical <= 0 ? rotateCopy.Height - offsetVertical : sizeVertical;
 
@@ -225,10 +223,6 @@ namespace OcrWaterMeter.Server.Controllers
                             {
                                 digitalNumber.Value = numericValue;
                             }
-                            else
-                            {
-                                //digitalNumber.Value = 0;
-                            }
                         }
                         digitalNumberCollection.Update(digitalNumber);
                     }
@@ -249,6 +243,57 @@ namespace OcrWaterMeter.Server.Controllers
 
                         var numberImage = new ImageData(digitalNumberStream.ToArray(), DateTime.Now, ImageType.Number, analogNumber.Id);
                         imageCollection.Insert(numberImage);
+
+                        var centerX = digitalNumberCopy.Width / 2;
+                        var centerY = digitalNumberCopy.Height / 2;
+
+
+                        var farestX = centerX;
+                        var farestY = centerY;
+
+                        var farestDistance = 0d;
+                        digitalNumberCopy.ProcessPixelRows(accessor =>
+                        {
+                            for (int y = 0; y < accessor.Height; y++)
+                            {
+                                Span<Rgba32> pixelRow = accessor.GetRowSpan(y);
+                                foreach (ref Rgba32 pixel in pixelRow)
+                                {
+                                    if (pixel.R > 150 && pixel.G < 50 && pixel.B < 50)
+                                    {
+                                        var horizontalIndex = pixelRow.IndexOf(pixel);
+                                        var verticalIndex = y;
+
+                                        var distance = Distance(horizontalIndex, verticalIndex, centerX, centerY);
+                                        if (distance > farestDistance)
+                                        {
+                                            farestDistance = distance;
+                                            farestX = horizontalIndex;
+                                            farestY = verticalIndex;
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+
+                        var dx = centerX - farestX;
+                        var dy = centerY - farestY;
+                        double angle = Math.Atan2(dy, dx) * 180 / Math.PI;
+                      
+                        // Rotate 90° => 0 is on top
+                        angle -= 90;
+
+                        if (angle < 0)
+                        {
+                            // Fix Negative Angles
+                            angle += 360;
+                        }
+
+                        var number = 10 / (360 / angle);
+                        var value = (int)Math.Floor(number);
+                        analogNumber.Value = value;
+                        analogNumberCollection.Update(analogNumber);
                     }
                     catch (Exception e)
                     {
@@ -268,6 +313,11 @@ namespace OcrWaterMeter.Server.Controllers
             }
 
             return result;
+        }
+
+        private static double Distance(int x1, int y1, int x2, int y2)
+        {
+            return Math.Sqrt(Math.Pow(x1 - x2, 2) + Math.Pow(y1 - y2, 2));
         }
     }
 }
