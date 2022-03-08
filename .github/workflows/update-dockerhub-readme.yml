@@ -1,0 +1,22 @@
+name: Update Docker Hub Description
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch: # Allows action to be run manually from the Actions tab
+
+jobs:
+  update-dockerhub-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Update Docker HUB Description
+        uses: peter-evans/dockerhub-description@v2.4.3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: hahni91/ocrwatermeter:latest
+          short-description: "ocrwatermeter"
+          readme-filepath: ./README.md
