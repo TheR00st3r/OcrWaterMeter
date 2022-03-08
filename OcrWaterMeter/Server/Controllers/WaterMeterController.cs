@@ -30,6 +30,24 @@ namespace OcrWaterMeter.Server.Controllers
             return Ok(data.Value);
         }
 
+        [HttpGet("Image/{type}")]
+        public ActionResult GetImage(string type)
+        {
+            if (Enum.TryParse<ImageType>(type, out var imageType))
+            {
+                var imageCollection = _DbContext.Context.GetCollection<ImageData>();
+
+                var imageData = imageCollection.FindOne(x => x.ImageType == imageType);
+                if (imageData != null)
+                {
+                    return base.File(imageData.Image, "image/jpeg");
+                }
+            }
+
+            return NotFound();
+        }
+
+
         [HttpGet("Image/{type}/{number}/")]
         public ActionResult GetImage(string type, int number)
         {
@@ -49,52 +67,6 @@ namespace OcrWaterMeter.Server.Controllers
 
             return NotFound();
         }
-
-        [HttpGet("Image/{type}")]
-        public ActionResult GetImage(string type)
-        {
-            if (Enum.TryParse<ImageType>(type, out var imageType))
-            {
-                var imageCollection = _DbContext.Context.GetCollection<ImageData>();
-                //if (imageType == ImageType.ProcessedImage)
-                //{
-                //    var imageDataToClone = imageCollection.FindOne(x => x.ImageType == ImageType.SrcImage);
-                //    if (imageDataToClone != null)
-                //    {
-                //        var configCollection = _DbContext.Context.GetCollection<ConfigValue>();
-                //        var rotate = float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.ImageAngle)?.Value ?? "0");
-                //        var offsetHorizontal = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropOffsetHorizontal)?.Value ?? "0");
-                //        var offsetVertical = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropOffsetVertical)?.Value ?? "0");
-                //        var sizeHorizontal = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropWidth)?.Value ?? "0");
-                //        var sizeVertical = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropHeight)?.Value ?? "0");
-
-                //        using var image = Image.Load(imageDataToClone.Image);
-                //        using var rotateCopy = image.Clone(i => i.Rotate(RotateMode.Rotate180).Rotate(rotate));
-
-
-                //        //TODO Size after Rotate?
-                //        sizeHorizontal = sizeHorizontal <= 0 ? rotateCopy.Width - offsetHorizontal : sizeHorizontal;
-                //        sizeVertical = sizeVertical <= 0 ? rotateCopy.Height - offsetVertical : sizeVertical;
-
-                //        using var cropCopy = rotateCopy.Clone(i => i.Crop(new Rectangle(offsetHorizontal, offsetVertical, sizeHorizontal, sizeVertical)));
-
-                //        using var ms = new MemoryStream();
-
-                //        cropCopy.Save(ms, new JpegEncoder());
-                //        return base.File(ms.ToArray(), "image/jpeg");
-                //    }
-                //}
-
-                var imageData = imageCollection.FindOne(x => x.ImageType == imageType);
-                if (imageData != null)
-                {
-                    return base.File(imageData.Image, "image/jpeg");
-                }
-            }
-
-            return NotFound();
-        }
-
 
         [HttpGet("DebugData")]
         public async Task<ActionResult<WaterMeterDebugData>> GetDebugData()
