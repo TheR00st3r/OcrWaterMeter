@@ -45,8 +45,12 @@ WORKDIR /OcrWaterMeter
 COPY --from=build /OcrWaterMeter/Server/bin/Release/net6.0/publish /OcrWaterMeter
 RUN chmod +x OcrWaterMeter.Server
 
-# Expose the port used
+#Expose the port used
 EXPOSE 5000/tcp
+
+#User 
+RUN groupadd -g 1010 -r ocrwatermeter && useradd --no-log-init -u 1010 -r -g ocrwatermeter ocrwatermeter
+USER ocrwatermeter
 
 # run
 CMD [ "/bin/sh", "-c", "/OcrWaterMeter/OcrWaterMeter.Server" ]
