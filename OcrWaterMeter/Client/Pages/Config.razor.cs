@@ -20,14 +20,15 @@ namespace OcrWaterMeter.Client.Pages
 {
     public partial class Config
     {
-        private string ProcessTime;
-        private bool loading = true;
-        private WaterMeterDebugData waterMeter;
-        private IEnumerable<ConfigValue> configValues;
-        private IList<DigitalNumber> DigitalNumbers = new List<DigitalNumber>();
-        private IList<AnalogNumber> AnalogNumbers = new List<AnalogNumber>();
+        private readonly IList<DigitalNumber> DigitalNumbers = new List<DigitalNumber>();
+        private readonly IList<AnalogNumber> AnalogNumbers = new List<AnalogNumber>();
 
-        private string _ImageSrc;
+        private string ProcessTime = string.Empty;
+        private bool loading = true;
+        private WaterMeterDebugData? waterMeter;
+        private IEnumerable<ConfigValue> configValues = Enumerable.Empty<ConfigValue>();
+
+        private string _ImageSrc = string.Empty;
         private string ImageSrc
         {
             get => _ImageSrc;
@@ -96,10 +97,10 @@ namespace OcrWaterMeter.Client.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            configValues = await Http.GetFromJsonAsync<IEnumerable<ConfigValue>>("WaterMeter/ConfigValues");
-            if (configValues != null)
+            configValues = await Http.GetFromJsonAsync<IEnumerable<ConfigValue>>("WaterMeter/ConfigValues") ?? Enumerable.Empty<ConfigValue>();
+            if (configValues.Any())
             {
-                _ImageSrc = configValues.FirstOrDefault(x => x.Key == ConfigParamters.ImageSrc)?.Value;
+                _ImageSrc = configValues.FirstOrDefault(x => x.Key == ConfigParamters.ImageSrc)?.Value ?? string.Empty;
                 _ImageAngle = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.ImageAngle)?.Value ?? "0");
                 _CropOffsetHorizontal = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropOffsetHorizontal)?.Value ?? "0");
                 _CropOffsetVertical = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropOffsetVertical)?.Value ?? "0");
@@ -141,7 +142,7 @@ namespace OcrWaterMeter.Client.Pages
 
         private async Task UpdateValue(string key, string value)
         {
-            await Http.PostAsJsonAsync("WaterMeter/ConfigValue", new ConfigValue { Key = key, Value = value });
+            await Http.PostAsJsonAsync("WaterMeter/ConfigValue", new ConfigValue(key, value));
             await UpdateData();
             ProcessTime = DateTime.Now.Ticks.ToString();
         }

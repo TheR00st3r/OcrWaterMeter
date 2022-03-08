@@ -168,12 +168,7 @@ namespace OcrWaterMeter.Server.Controllers
                         imageCollection.DeleteMany(i => i.ImageType == ImageType.SrcImage);
                     }
 
-                    image = new ImageData
-                    {
-                        Image = imageData,
-                        Created = DateTime.Now,
-                        ImageType = ImageType.SrcImage
-                    };
+                    image = new ImageData(imageData, DateTime.Now, ImageType.SrcImage);
                     imageCollection.Insert(image);
 
                 }
@@ -199,12 +194,11 @@ namespace OcrWaterMeter.Server.Controllers
                 using var ms = new MemoryStream();
                 cropCopy.Save(ms, new JpegEncoder());
 
-                image = new ImageData
+                if (image != null)
                 {
-                    Image = ms.ToArray(),
-                    Created = DateTime.Now,
-                    ImageType = ImageType.ProcessedImage
-                };
+                    imageCollection.DeleteMany(i => i.ImageType == ImageType.ProcessedImage);
+                }
+                image = new ImageData(ms.ToArray(), DateTime.Now, ImageType.ProcessedImage);
                 imageCollection.Insert(image);
 
                 using var engine = new TesseractEngine("tessdata", "eng", EngineMode.Default);
@@ -219,13 +213,7 @@ namespace OcrWaterMeter.Server.Controllers
                         using var digitalNumberStream = new MemoryStream();
                         digitalNumberCopy.Save(digitalNumberStream, new JpegEncoder());
 
-                        var numberImage = new ImageData
-                        {
-                            Image = digitalNumberStream.ToArray(),
-                            Created = DateTime.Now,
-                            ImageType = ImageType.Number,
-                            Number = digitalNumber.Id
-                        };
+                        var numberImage = new ImageData(digitalNumberStream.ToArray(), DateTime.Now, ImageType.Number, digitalNumber.Id);
                         imageCollection.Insert(numberImage);
 
                         using (var img = Pix.LoadFromMemory(numberImage.Image))
@@ -246,7 +234,7 @@ namespace OcrWaterMeter.Server.Controllers
                     }
                     catch (Exception e)
                     {
-                        // Skip image
+                        _Logger.LogError(e, "Error on DigitalNumber {Id}", digitalNumber?.Id);
                     }
                 }
 
@@ -259,45 +247,24 @@ namespace OcrWaterMeter.Server.Controllers
                         using var digitalNumberStream = new MemoryStream();
                         digitalNumberCopy.Save(digitalNumberStream, new JpegEncoder());
 
-                        var numberImage = new ImageData
-                        {
-                            Image = digitalNumberStream.ToArray(),
-                            Created = DateTime.Now,
-                            ImageType = ImageType.Number,
-                            Number = analogNumber.Id
-                        };
+                        var numberImage = new ImageData(digitalNumberStream.ToArray(), DateTime.Now, ImageType.Number, analogNumber.Id);
                         imageCollection.Insert(numberImage);
                     }
                     catch (Exception e)
                     {
-                        // Skip image
+                        _Logger.LogError(e, "Error on AnalogNumber {Id}", analogNumber?.Id);
                     }
-                    //using (var img = Pix.LoadFromMemory(numberImage.Image))
-                    //{
-                    //    using var page = engine.Process(img, PageSegMode.SingleChar);
-                    //    var content = page.GetText();
-                    //    Console.WriteLine(result);
-                    //    if (int.TryParse(content, out var numericValue))
-                    //    {
-                    //        digitalNumber.Value = numericValue;
-                    //    }
-                    //    else
-                    //    {
-                    //        //digitalNumber.Value = 0;
-                    //    }
-                    //}
-                    //digitalNumberCollection.Update(digitalNumber);
                 }
 
 
                 result.DigitalNumbers = digitalNumberCollection.FindAll();
                 result.AnalogNumbers = analogNumberCollection.FindAll();
-                result.Value = result.DigitalNumbers.Sum(x => x.Value * x.Factor);
+                result.Value = result.DigitalNumbers.Sum(x => x.Value * x.Factor) + result.AnalogNumbers.Sum(x => x.Value * x.Factor);
 
             }
             catch (Exception e)
             {
-                //return BadRequest(e);
+                _Logger.LogError(e, "Error on Loading DebugData");
             }
 
             return result;

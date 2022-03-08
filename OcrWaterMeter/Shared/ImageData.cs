@@ -2,12 +2,26 @@
 {
     public class ImageData
     {
-        public byte[] Image { get; set; }
 
-        public DateTime Created { get; set; }
+        public ImageData(byte[] image, DateTime created, ImageType imageType) : this(image, created, imageType, 0)
+        {
 
-        public ImageType ImageType { get; set; }
+        }
 
-        public int Number { get; set; }
+        public ImageData(byte[] image, DateTime created, ImageType imageType, int number)
+        {
+            Image = image;
+            Created = created;
+            ImageType = imageType;
+            Number = number;
+        }
+
+        public byte[] Image { get; }
+
+        public DateTime Created { get; }
+
+        public ImageType ImageType { get; }
+
+        public int Number { get; }
     }
 }

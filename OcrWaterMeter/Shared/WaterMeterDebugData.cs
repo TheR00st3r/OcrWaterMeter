@@ -6,10 +6,8 @@ namespace OcrWaterMeter.Shared
     {
         public decimal Value { get; set; }
 
-        public ImageData Image { get; set; }
+        public IEnumerable<DigitalNumber> DigitalNumbers { get; set; } = Enumerable.Empty<DigitalNumber>();
 
-        public IEnumerable<DigitalNumber> DigitalNumbers { get; set; }
-
-        public IEnumerable<AnalogNumber> AnalogNumbers { get; set; }
+        public IEnumerable<AnalogNumber> AnalogNumbers { get; set; } = Enumerable.Empty<AnalogNumber>();
     }
 }
