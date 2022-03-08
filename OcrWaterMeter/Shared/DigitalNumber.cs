@@ -3,13 +3,14 @@ using System.Runtime.CompilerServices;
 
 namespace OcrWaterMeter.Shared
 {
-    public class DigitalNumber : INotifyPropertyChanged
+    public class NumberBase : INotifyPropertyChanged
     {
         private int _HorizontalOffset;
         private int _VverticalOffset;
         private int _Width;
         private int _Height;
         private int _Value;
+        private decimal _Factor = 1;
 
         public int Id { get; set; }
 
@@ -65,11 +66,31 @@ namespace OcrWaterMeter.Shared
             }
         }
 
+        public decimal Factor
+        {
+            get => _Factor;
+            set
+            {
+                _Factor = value;
+                OnPropertyChanged();
+            }
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+    }
+
+    public class DigitalNumber : NumberBase
+    {
+
+    }
+
+    public class AnalogNumber : NumberBase
+    {
+
     }
 }

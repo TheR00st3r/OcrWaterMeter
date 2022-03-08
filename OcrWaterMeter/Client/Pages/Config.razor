@@ -55,45 +55,61 @@ else
 				<div class="card border-success mb-3">
 					<div class="card-header bg-transparent">Digital Numbers</div>
 					<div class="card-body text-success">
-						@*<h5 class="card-title">Success card title</h5>*@
-						@*<p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>*@
 
 						<table>
 							<thead>
 								<tr>
 									<th>Id</th>
+									<th>Factor</th>
 									<th>Offset Horizontal</th>
 									<th>Offset Vertical</th>
 									<th>Width</th>
 									<th>Height</th>
 									<th>Image</th>
 									<th>Value</th>
+									<th></th>
 								</tr>
 							</thead>
 							<tbody>
-								@foreach (var digitalNumber in DigitalNumbers)
+								@foreach (var number in DigitalNumbers)
 								{
 									<tr>
 										<td>
-											<input type="number" class="form-control" @bind="digitalNumber.Id" readonly>
+											<input type="number" class="form-control" @bind="number.Id" readonly>
 										</td>
 										<td>
-											<input type="number" class="form-control" @bind="digitalNumber.HorizontalOffset">
+											<select @bind="number.Factor">
+												<option value="0.0001">0.0001</option>
+												<option value="0.001">0.001</option>
+												<option value="0.01">0.01</option>
+												<option value="0.1">0.1</option>
+												<option value="1">1</option>
+												<option value="10">10</option>
+												<option value="100">100</option>
+												<option value="1000">1000</option>
+												<option value="10000">10000</option>
+											</select>
 										</td>
 										<td>
-											<input type="number" class="form-control" @bind="digitalNumber.VerticalOffset">
+											<input type="number" class="form-control" @bind="number.HorizontalOffset">
 										</td>
 										<td>
-											<input type="number" class="form-control" @bind="digitalNumber.Width">
+											<input type="number" class="form-control" @bind="number.VerticalOffset">
 										</td>
 										<td>
-											<input type="number" class="form-control" @bind="digitalNumber.Height">
+											<input type="number" class="form-control" @bind="number.Width">
 										</td>
 										<td>
-											<img src="WaterMeter/Image/@ImageType.Number/@digitalNumber.Id/?@ProcessTime" class="preview-image" />
+											<input type="number" class="form-control" @bind="number.Height">
 										</td>
 										<td>
-											<input type="number" class="form-control" @bind="digitalNumber.Value" readonly>
+											<img src="WaterMeter/Image/@ImageType.Number/@number.Id/?@ProcessTime" class="preview-image" />
+										</td>
+										<td>
+											<input type="number" class="form-control" @bind="number.Value" readonly>
+										</td>
+										<td>
+											<button @onclick="() => RemoveNumber(number.Id)">Delete</button>
 										</td>
 									</tr>
 								}
@@ -106,6 +122,79 @@ else
 					</div>
 				</div>
 			</div>
+
+			<div class="row">
+				<div class="card border-success mb-3">
+					<div class="card-header bg-transparent">Analog Numbers</div>
+					<div class="card-body text-success">
+
+						<table>
+							<thead>
+								<tr>
+									<th>Id</th>
+									<th>Factor</th>
+									<th>Offset Horizontal</th>
+									<th>Offset Vertical</th>
+									<th>Width</th>
+									<th>Height</th>
+									<th>Image</th>
+									<th>Value</th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach (var number in AnalogNumbers)
+								{
+									<tr>
+										<td>
+											<input type="number" class="form-control" @bind="number.Id" readonly>
+										</td>
+										<td>
+											<select @bind="number.Factor">
+												<option value="0.0001">0.0001</option>
+												<option value="0.001">0.001</option>
+												<option value="0.01">0.01</option>
+												<option value="0.1">0.1</option>
+												<option value="1">1</option>
+												<option value="10">10</option>
+												<option value="100">100</option>
+												<option value="1000">1000</option>
+												<option value="10000">10000</option>
+											</select>
+										</td>
+										<td>
+											<input type="number" class="form-control" @bind="number.HorizontalOffset">
+										</td>
+										<td>
+											<input type="number" class="form-control" @bind="number.VerticalOffset">
+										</td>
+										<td>
+											<input type="number" class="form-control" @bind="number.Width">
+										</td>
+										<td>
+											<input type="number" class="form-control" @bind="number.Height">
+										</td>
+										<td>
+											<img src="WaterMeter/Image/@ImageType.Number/@number.Id/?@ProcessTime" class="preview-image" />
+										</td>
+										<td>
+											<input type="number" class="form-control" @bind="number.Value" readonly>
+										</td>
+										<td>
+											<button @onclick="() => RemoveNumber(number.Id)">Delete</button>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+
+					</div>
+					<div class="card-footer bg-transparent border-success">
+						<button @onclick="AddNewAnalogNumber">Add Analog Number</button>
+					</div>
+				</div>
+			</div>
+
 
 		</div>
 		<div class="col-6">
@@ -120,6 +209,15 @@ else
 						@foreach (var digitalNumber in DigitalNumbers)
 						{
 							<div class="overlay-box" style="top:@(digitalNumber.VerticalOffset + "px");left:@(digitalNumber.HorizontalOffset + "px");width:@(digitalNumber.Width + "px");height:@(digitalNumber.Height + "px");">@digitalNumber.Id</div>
+						}
+
+						@foreach (var analogNumber in AnalogNumbers)
+						{
+							@*@analogNumber.Id*@
+							<div class="overlay-box crossed" style="top:@(analogNumber.VerticalOffset + "px");left:@(analogNumber.HorizontalOffset + "px");width:@(analogNumber.Width + "px");height:@(analogNumber.Height + "px");">
+								@analogNumber.Id
+								@*<div class="overlay-box-diagonal-top"></div>*@
+							</div>
 						}
 					</div>
 				</div>

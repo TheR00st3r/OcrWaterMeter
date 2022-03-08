@@ -25,6 +25,7 @@ namespace OcrWaterMeter.Client.Pages
         private WaterMeterDebugData waterMeter;
         private IEnumerable<ConfigValue> configValues;
         private IList<DigitalNumber> DigitalNumbers = new List<DigitalNumber>();
+        private IList<AnalogNumber> AnalogNumbers = new List<AnalogNumber>();
 
         private string _ImageSrc;
         private string ImageSrc
@@ -106,15 +107,6 @@ namespace OcrWaterMeter.Client.Pages
                 _CropHeight = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropHeight)?.Value ?? "0");
             }
 
-            //var digitalNumbers = await Http.GetFromJsonAsync<IEnumerable<DigitalNumber>>("WaterMeter/DigitalNumbers");
-            //if (digitalNumbers != null)
-            //{
-            //    foreach (var digitalNumber in digitalNumbers)
-            //    {
-            //        DigitalNumbers.Add(digitalNumber);
-            //    }
-            //}
-
             await UpdateData();
             loading = false;
             //StateHasChanged();
@@ -124,13 +116,27 @@ namespace OcrWaterMeter.Client.Pages
         {
             waterMeter = await Http.GetFromJsonAsync<WaterMeterDebugData>("WaterMeter/DebugData");
 
-            if (waterMeter.DigitalNumbers != null)
+            DigitalNumbers.Clear();
+            if (waterMeter?.DigitalNumbers != null)
             {
                 foreach (var digitalNumber in waterMeter.DigitalNumbers)
                 {
+                    digitalNumber.PropertyChanged += DigitalNumberPropertyChanged;
                     DigitalNumbers.Add(digitalNumber);
                 }
             }
+
+            AnalogNumbers.Clear();
+            if (waterMeter?.AnalogNumbers != null)
+            {
+                foreach (var analogNumber in waterMeter.AnalogNumbers)
+                {
+                    analogNumber.PropertyChanged += AnalogNumberPropertyChanged;
+                    AnalogNumbers.Add(analogNumber);
+                }
+            }
+
+            StateHasChanged();
         }
 
         private async Task UpdateValue(string key, string value)
@@ -142,9 +148,23 @@ namespace OcrWaterMeter.Client.Pages
 
         private void AddNewDigitalNumber()
         {
-            var newNumber = new DigitalNumber { Id = DigitalNumbers.Any() ? DigitalNumbers.Max(x => x.Id) + 1 : 1 };
+            var newNumber = new DigitalNumber { Id = GetNextFreeNumber() };
             newNumber.PropertyChanged += DigitalNumberPropertyChanged;
             DigitalNumbers.Add(newNumber);
+        }
+
+        private void AddNewAnalogNumber()
+        {
+            var newNumber = new AnalogNumber { Id = GetNextFreeNumber() };
+            newNumber.PropertyChanged += AnalogNumberPropertyChanged;
+            AnalogNumbers.Add(newNumber);
+        }
+
+        private async void RemoveNumber(int id)
+        {
+            await Http.DeleteAsync($"WaterMeter/Number/{id}");
+            await UpdateData();
+            ProcessTime = DateTime.Now.Ticks.ToString();
         }
 
         private async void DigitalNumberPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -152,6 +172,26 @@ namespace OcrWaterMeter.Client.Pages
             await Http.PostAsJsonAsync("WaterMeter/DigitalNumber", sender as DigitalNumber);
             await UpdateData();
             ProcessTime = DateTime.Now.Ticks.ToString();
+        }
+
+        private async void AnalogNumberPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            await Http.PostAsJsonAsync("WaterMeter/AnalogNumber", sender as AnalogNumber);
+            await UpdateData();
+            ProcessTime = DateTime.Now.Ticks.ToString();
+        }
+
+        private int GetNextFreeNumber()
+        {
+            for (var i = 1; i < int.MaxValue; i++)
+            {
+                if (DigitalNumbers.FirstOrDefault(x => x.Id == i) == null && AnalogNumbers.FirstOrDefault(x => x.Id == i) == null)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
     }
 }

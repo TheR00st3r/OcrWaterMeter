@@ -39,8 +39,10 @@ namespace OcrWaterMeter.Server.Controllers
                 {
                     var t = imageCollection.Find(x => x.ImageType == ImageType.Number).ToList();
                     var numberImageData = imageCollection.FindOne(x => x.ImageType == imageType && x.Number == number);
-
-                    return base.File(numberImageData.Image, "image/jpeg");
+                    if (numberImageData?.Image != null)
+                    {
+                        return base.File(numberImageData.Image, "image/jpeg");
+                    }
                 }
             }
 
@@ -116,30 +118,32 @@ namespace OcrWaterMeter.Server.Controllers
             return Ok();
         }
 
-        [HttpGet("DigitalNumbers")]
-        public ActionResult<IEnumerable<DigitalNumber>> GetDigitalNumbers()
-        {
-            var numberCollection = _DbContext.Context.GetCollection<DigitalNumber>();
-
-            try
-            {
-
-                return Ok(numberCollection.FindAll().ToList());
-            }
-            catch (Exception)
-            {
-                numberCollection.DeleteAll();
-            }
-            return Ok(Enumerable.Empty<DigitalNumber>());
-        }
-
-
         [HttpPost("DigitalNumber")]
-        public IActionResult PostConfigValue([FromBody] DigitalNumber value)
+        public IActionResult PostDigitalNumber([FromBody] DigitalNumber value)
         {
             var digitalNumberCollection = _DbContext.Context.GetCollection<DigitalNumber>();
             digitalNumberCollection.DeleteMany(x => x.Id == value.Id);
             digitalNumberCollection.Insert(value);
+            return Ok();
+        }
+
+        [HttpPost("AnalogNumber")]
+        public IActionResult PostAnalogNumber([FromBody] AnalogNumber value)
+        {
+            var analogNumberCollection = _DbContext.Context.GetCollection<AnalogNumber>();
+            analogNumberCollection.DeleteMany(x => x.Id == value.Id);
+            analogNumberCollection.Insert(value);
+            return Ok();
+        }
+
+        [HttpDelete("Number/{id}")]
+        public IActionResult PostDigitalNumber(int id)
+        {
+            var digitalNumberCollection = _DbContext.Context.GetCollection<DigitalNumber>();
+            digitalNumberCollection.DeleteMany(x => x.Id == id);
+            var analogNumberCollection = _DbContext.Context.GetCollection<AnalogNumber>();
+            analogNumberCollection.DeleteMany(x => x.Id == id);
+
             return Ok();
         }
 
@@ -209,38 +213,86 @@ namespace OcrWaterMeter.Server.Controllers
                 imageCollection.DeleteMany(x => x.ImageType == ImageType.Number);
                 foreach (var digitalNumber in digitalNumberCollection.FindAll())
                 {
-                    using var digitalNumberCopy = cropCopy.Clone(i => i.Crop(new Rectangle(digitalNumber.HorizontalOffset, digitalNumber.VerticalOffset, digitalNumber.Width, digitalNumber.Height)));
-                    using var digitalNumberStream = new MemoryStream();
-                    digitalNumberCopy.Save(digitalNumberStream, new JpegEncoder());
-
-                    var numberImage = new ImageData
+                    try
                     {
-                        Image = digitalNumberStream.ToArray(),
-                        Created = DateTime.Now,
-                        ImageType = ImageType.Number,
-                        Number = digitalNumber.Id
-                    };
-                    imageCollection.Insert(numberImage);
+                        using var digitalNumberCopy = cropCopy.Clone(i => i.Crop(new Rectangle(digitalNumber.HorizontalOffset, digitalNumber.VerticalOffset, digitalNumber.Width, digitalNumber.Height)));
+                        using var digitalNumberStream = new MemoryStream();
+                        digitalNumberCopy.Save(digitalNumberStream, new JpegEncoder());
 
-                    using (var img = Pix.LoadFromMemory(numberImage.Image))
-                    {
-                        using var page = engine.Process(img, PageSegMode.SingleChar);
-                        var content = page.GetText();
-                        Console.WriteLine(result);
-                        if (int.TryParse(content, out var numericValue))
+                        var numberImage = new ImageData
                         {
-                            digitalNumber.Value = numericValue;
-                        }
-                        else
+                            Image = digitalNumberStream.ToArray(),
+                            Created = DateTime.Now,
+                            ImageType = ImageType.Number,
+                            Number = digitalNumber.Id
+                        };
+                        imageCollection.Insert(numberImage);
+
+                        using (var img = Pix.LoadFromMemory(numberImage.Image))
                         {
-                            digitalNumber.Value = 0;
+                            using var page = engine.Process(img, PageSegMode.SingleChar);
+                            var content = page.GetText();
+                            Console.WriteLine(result);
+                            if (int.TryParse(content, out var numericValue))
+                            {
+                                digitalNumber.Value = numericValue;
+                            }
+                            else
+                            {
+                                //digitalNumber.Value = 0;
+                            }
                         }
+                        digitalNumberCollection.Update(digitalNumber);
                     }
-                    digitalNumberCollection.Update(digitalNumber);
+                    catch (Exception e)
+                    {
+                        // Skip image
+                    }
                 }
 
-                result.DigitalNumbers = digitalNumberCollection.FindAll();
+                var analogNumberCollection = _DbContext.Context.GetCollection<AnalogNumber>();
+                foreach (var analogNumber in analogNumberCollection.FindAll())
+                {
+                    try
+                    {
+                        using var digitalNumberCopy = cropCopy.Clone(i => i.Crop(new Rectangle(analogNumber.HorizontalOffset, analogNumber.VerticalOffset, analogNumber.Width, analogNumber.Height)));
+                        using var digitalNumberStream = new MemoryStream();
+                        digitalNumberCopy.Save(digitalNumberStream, new JpegEncoder());
 
+                        var numberImage = new ImageData
+                        {
+                            Image = digitalNumberStream.ToArray(),
+                            Created = DateTime.Now,
+                            ImageType = ImageType.Number,
+                            Number = analogNumber.Id
+                        };
+                        imageCollection.Insert(numberImage);
+                    }
+                    catch (Exception e)
+                    {
+                        // Skip image
+                    }
+                    //using (var img = Pix.LoadFromMemory(numberImage.Image))
+                    //{
+                    //    using var page = engine.Process(img, PageSegMode.SingleChar);
+                    //    var content = page.GetText();
+                    //    Console.WriteLine(result);
+                    //    if (int.TryParse(content, out var numericValue))
+                    //    {
+                    //        digitalNumber.Value = numericValue;
+                    //    }
+                    //    else
+                    //    {
+                    //        //digitalNumber.Value = 0;
+                    //    }
+                    //}
+                    //digitalNumberCollection.Update(digitalNumber);
+                }
+
+
+                result.DigitalNumbers = digitalNumberCollection.FindAll();
+                result.AnalogNumbers = analogNumberCollection.FindAll();
+                result.Value = result.DigitalNumbers.Sum(x => x.Value * x.Factor);
 
             }
             catch (Exception e)
