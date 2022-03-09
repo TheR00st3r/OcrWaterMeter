@@ -6,6 +6,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System.Globalization;
 using Tesseract;
 
 namespace OcrWaterMeter.Server.Controllers
@@ -169,11 +170,11 @@ namespace OcrWaterMeter.Server.Controllers
 
                 }
 
-                var rotate = float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.ImageAngle)?.Value ?? "0");
-                var offsetHorizontal = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropOffsetHorizontal)?.Value ?? "0");
-                var offsetVertical = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropOffsetVertical)?.Value ?? "0");
-                var sizeHorizontal = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropWidth)?.Value ?? "0");
-                var sizeVertical = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropHeight)?.Value ?? "0");
+                var rotate = float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.ImageAngle)?.Value ?? "0", CultureInfo.InvariantCulture);
+                var offsetHorizontal = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropOffsetHorizontal)?.Value ?? "0", CultureInfo.InvariantCulture);
+                var offsetVertical = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropOffsetVertical)?.Value ?? "0", CultureInfo.InvariantCulture);
+                var sizeHorizontal = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropWidth)?.Value ?? "0", CultureInfo.InvariantCulture);
+                var sizeVertical = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropHeight)?.Value ?? "0", CultureInfo.InvariantCulture);
 
                 using var imageToClone = Image.Load<Rgba32>(image.Image);
                 using var rotateCopy = imageToClone.Clone(i => i.Rotate(RotateMode.Rotate180).Rotate(rotate));

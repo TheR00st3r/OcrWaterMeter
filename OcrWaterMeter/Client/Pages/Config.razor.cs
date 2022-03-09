@@ -112,12 +112,12 @@ namespace OcrWaterMeter.Client.Pages
             if (configValues.Any())
             {
                 _ImageSrc = configValues.FirstOrDefault(x => x.Key == ConfigParamters.ImageSrc)?.Value ?? string.Empty;
-                _InitialValue = decimal.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.InitialValue)?.Value ?? "0");
-                _ImageAngle = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.ImageAngle)?.Value ?? "0");
-                _CropOffsetHorizontal = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropOffsetHorizontal)?.Value ?? "0");
-                _CropOffsetVertical = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropOffsetVertical)?.Value ?? "0");
-                _CropWidth = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropWidth)?.Value ?? "0");
-                _CropHeight = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropHeight)?.Value ?? "0");
+                _InitialValue = decimal.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.InitialValue)?.Value ?? "0", CultureInfo.InvariantCulture);
+                _ImageAngle = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.ImageAngle)?.Value ?? "0", CultureInfo.InvariantCulture);
+                _CropOffsetHorizontal = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropOffsetHorizontal)?.Value ?? "0", CultureInfo.InvariantCulture);
+                _CropOffsetVertical = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropOffsetVertical)?.Value ?? "0", CultureInfo.InvariantCulture);
+                _CropWidth = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropWidth)?.Value ?? "0", CultureInfo.InvariantCulture);
+                _CropHeight = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropHeight)?.Value ?? "0", CultureInfo.InvariantCulture);
             }
 
             await UpdateData();
