@@ -23,8 +23,8 @@ namespace OcrWaterMeter.Server.Controllers
             _DbContext = dbContext;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Get()
+        [HttpGet("Value")]
+        public async Task<IActionResult> GetValue()
         {
             var data = await LoadData();
             return Ok(data.Value);
@@ -316,10 +316,6 @@ namespace OcrWaterMeter.Server.Controllers
                             currentNumber.Value = currentNumber.OcrValue;
                         }
                     }
-                    //else
-                    //               {
-                    //                   currentNumber.Value = currentNumber.OcrValue;
-                    //               }
                 }
 
 
