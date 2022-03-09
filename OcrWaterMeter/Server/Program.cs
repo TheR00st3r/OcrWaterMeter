@@ -1,6 +1,8 @@
 using OcrWaterMeter.Server.Database;
 
-var liteDbName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WaterMeter.db");
+var dbFolder = Environment.GetEnvironmentVariable("DATADIR");
+
+var liteDbName = Path.Combine(string.IsNullOrEmpty(dbFolder) ? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) : dbFolder, "WaterMeter.db");
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
