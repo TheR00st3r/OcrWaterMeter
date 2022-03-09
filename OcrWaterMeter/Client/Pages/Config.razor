@@ -17,39 +17,57 @@ else
 {
 	<h2>@waterMeter?.Value m3</h2>
 
-
 	<div class="row">
 		<div class="col-6">
 
 			<div class="row">
-				<div class="col-12 mb-3">
-					<label for="inputImageSrc" class="form-label">Image source</label>
-					<input type="text" class="form-control" id="inputImageSrc" @bind="ImageSrc">
-				</div>
+				<div class="card border-success mb-3">
+					<div class="card-header bg-transparent">Settings</div>
+					<div class="card-body text-success">
 
-				<div class="col-12 mb-3">
-					<label for="inputImageAngle" class="form-label">Rotationangle</label>
-					<input type="number" class="form-control" id="inputImageAngle" @bind="ImageAngle">
-				</div>
+						<div class="row">
+							<div class="col-12 mb-3">
+								<label for="inputImageSrc" class="form-label">Image source</label>
+								<input type="text" class="form-control" id="inputImageSrc" @bind="ImageSrc">
+							</div>
 
-				<div class="col-6 mb-3">
-					<label for="inputCropOffsetHorizontal" class="form-label">Crop Offset Horizontal</label>
-					<input type="number" class="form-control" id="inputCropOffsetHorizontal" @bind="CropOffsetHorizontal">
-				</div>
-				<div class="col-6 mb-3">
-					<label for="inputCropOffsetVertical" class="form-label">Crop Offset Vertical</label>
-					<input type="number" class="form-control" id="inputCropOffsetVertical" @bind="CropOffsetVertical">
-				</div>
+							<div class="col-12 mb-3">
+								<label for="inputInitialValue" class="form-label">Initial Value <small>(Required for Processing undefined Values)</small></label>
+								<input type="number" class="form-control" id="inputInitialValue" @bind="InitialValue">
+							</div>
 
-				<div class="col-6 mb-3">
-					<label for="inputCropWidth" class="form-label">Crop Width</label>
-					<input type="number" class="form-control" id="inputCropWidth" @bind="CropWidth">
-				</div>
-				<div class="col-6 mb-3">
-					<label for="inputCropHeight" class="form-label">Crop Height</label>
-					<input type="number" class="form-control" id="inputCropHeight" @bind="CropHeight">
+							<div class="col-12 mb-3">
+								<label for="inputLastValue" class="form-label">Last Value</label>
+								<input type="number" class="form-control" id="inputLastValue" @bind="waterMeter.LastValue" readonly>
+							</div>
+
+							<div class="col-12 mb-3">
+								<label for="inputImageAngle" class="form-label">Rotationangle</label>
+								<input type="number" class="form-control" id="inputImageAngle" @bind="ImageAngle">
+							</div>
+
+							<div class="col-6 mb-3">
+								<label for="inputCropOffsetHorizontal" class="form-label">Crop Offset Horizontal</label>
+								<input type="number" class="form-control" id="inputCropOffsetHorizontal" @bind="CropOffsetHorizontal">
+							</div>
+							<div class="col-6 mb-3">
+								<label for="inputCropOffsetVertical" class="form-label">Crop Offset Vertical</label>
+								<input type="number" class="form-control" id="inputCropOffsetVertical" @bind="CropOffsetVertical">
+							</div>
+
+							<div class="col-6 mb-3">
+								<label for="inputCropWidth" class="form-label">Crop Width</label>
+								<input type="number" class="form-control" id="inputCropWidth" @bind="CropWidth">
+							</div>
+							<div class="col-6 mb-3">
+								<label for="inputCropHeight" class="form-label">Crop Height</label>
+								<input type="number" class="form-control" id="inputCropHeight" @bind="CropHeight">
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
+
 
 			<div class="row">
 				<div class="card border-success mb-3">
@@ -66,6 +84,7 @@ else
 									<th>Width</th>
 									<th>Height</th>
 									<th>Image</th>
+									<th>OcrValue</th>
 									<th>Value</th>
 									<th></th>
 								</tr>
@@ -106,6 +125,9 @@ else
 											<img src="WaterMeter/Image/@ImageType.Number/@number.Id/?@ProcessTime" class="preview-image" />
 										</td>
 										<td>
+											<input type="number" class="form-control" @bind="number.OcrValue" readonly>
+										</td>
+										<td>
 											<input type="number" class="form-control" @bind="number.Value" readonly>
 										</td>
 										<td>
@@ -138,6 +160,7 @@ else
 									<th>Width</th>
 									<th>Height</th>
 									<th>Image</th>
+									<th>OcrValue</th>
 									<th>Value</th>
 									<th></th>
 								</tr>
@@ -178,6 +201,9 @@ else
 											<img src="WaterMeter/Image/@ImageType.Number/@number.Id/?@ProcessTime" class="preview-image" />
 										</td>
 										<td>
+											<input type="number" class="form-control" @bind="number.OcrValue" readonly>
+										</td>
+										<td>
 											<input type="number" class="form-control" @bind="number.Value" readonly>
 										</td>
 										<td>
@@ -194,9 +220,8 @@ else
 					</div>
 				</div>
 			</div>
-
-
 		</div>
+
 		<div class="col-6">
 			<div class="row">
 				<div class="col-12">

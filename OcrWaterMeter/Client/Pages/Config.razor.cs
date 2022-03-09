@@ -39,6 +39,17 @@ namespace OcrWaterMeter.Client.Pages
             }
         }
 
+        private decimal _InitialValue = 0;
+        private decimal InitialValue
+        {
+            get => _InitialValue;
+            set
+            {
+                _InitialValue = value;
+                _ = UpdateValue(ConfigParamters.InitialValue, value.ToString());
+            }
+        }
+
         private float _ImageAngle;
         private float ImageAngle
         {
@@ -101,6 +112,7 @@ namespace OcrWaterMeter.Client.Pages
             if (configValues.Any())
             {
                 _ImageSrc = configValues.FirstOrDefault(x => x.Key == ConfigParamters.ImageSrc)?.Value ?? string.Empty;
+                _InitialValue = decimal.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.InitialValue)?.Value ?? "0");
                 _ImageAngle = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.ImageAngle)?.Value ?? "0");
                 _CropOffsetHorizontal = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropOffsetHorizontal)?.Value ?? "0");
                 _CropOffsetVertical = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropOffsetVertical)?.Value ?? "0");

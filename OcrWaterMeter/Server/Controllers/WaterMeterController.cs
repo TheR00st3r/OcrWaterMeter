@@ -23,8 +23,8 @@ namespace OcrWaterMeter.Server.Controllers
             _DbContext = dbContext;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Get()
+        [HttpGet("Value")]
+        public async Task<IActionResult> GetValue()
         {
             var data = await LoadData();
             return Ok(data.Value);
@@ -88,6 +88,29 @@ namespace OcrWaterMeter.Server.Controllers
             var configCollection = _DbContext.Context.GetCollection<ConfigValue>();
             configCollection.DeleteMany(x => x.Key == value.Key);
             configCollection.Insert(value);
+
+            if (value.Key.Equals(ConfigParamters.InitialValue))
+            {
+                if (decimal.TryParse(value.Value, out var initialValue))
+                {
+                    var digitalNumberCollection = _DbContext.Context.GetCollection<DigitalNumber>();
+                    var analogNumberCollection = _DbContext.Context.GetCollection<AnalogNumber>();
+                    var allNumbers = analogNumberCollection.FindAll().OfType<NumberBase>().Concat(digitalNumberCollection.FindAll()).OrderByDescending(x => x.Factor);
+                    foreach (var number in allNumbers)
+                    {
+                        number.Value = (int)Math.Floor(initialValue / number.Factor);
+                        initialValue -= number.Value * number.Factor;
+                        if(number is DigitalNumber digitalNumber)
+						{
+                            digitalNumberCollection.Update(digitalNumber);
+                        }else if(number is AnalogNumber analogNumber)
+                        {
+                            analogNumberCollection.Update(analogNumber);
+                        }
+                    }
+                }
+            }
+
             return Ok();
         }
 
@@ -193,7 +216,7 @@ namespace OcrWaterMeter.Server.Controllers
                             Console.WriteLine(result);
                             if (int.TryParse(content, out var numericValue))
                             {
-                                digitalNumber.Value = numericValue;
+                                digitalNumber.OcrValue = numericValue;
                             }
                         }
                         digitalNumberCollection.Update(digitalNumber);
@@ -252,7 +275,7 @@ namespace OcrWaterMeter.Server.Controllers
                         var dx = centerX - farestX;
                         var dy = centerY - farestY;
                         double angle = Math.Atan2(dy, dx) * 180 / Math.PI;
-                      
+
                         // Rotate 90° => 0 is on top
                         angle -= 90;
 
@@ -264,12 +287,34 @@ namespace OcrWaterMeter.Server.Controllers
 
                         var number = 10 / (360 / angle);
                         var value = (int)Math.Floor(number);
+                        analogNumber.OcrValue = value;
                         analogNumber.Value = value;
                         analogNumberCollection.Update(analogNumber);
                     }
                     catch (Exception e)
                     {
                         _Logger.LogError(e, "Error on AnalogNumber {Id}", analogNumber?.Id);
+                    }
+                }
+
+                var allNumbers = analogNumberCollection.FindAll().OfType<NumberBase>().Concat(digitalNumberCollection.FindAll()).OrderBy(x => x.Factor);
+                for (int i = 0; i < allNumbers.Count(); i++)
+                {
+                    var currentNumber = allNumbers.ElementAt(i);
+
+                    if (currentNumber is DigitalNumber)
+                    {
+                        if (i == 0)
+                        {
+                            currentNumber.Value = currentNumber.OcrValue;
+                            continue;
+                        }
+
+                        var lastNumber = allNumbers.ElementAt(i - 1);
+                        if (currentNumber.OcrValue == currentNumber.Value + 1 && lastNumber.OcrValue < 8)
+                        {
+                            currentNumber.Value = currentNumber.OcrValue;
+                        }
                     }
                 }
 
