@@ -30,6 +30,14 @@ LABEL org.opencontainers.image.authors="Alexander@volzit.de"
 
 #dotnet config
 ENV ASPNETCORE_URLS="http://+:5000"
+ENV DATADIR="/data"
+
+#User creation
+RUN groupadd -g 1010 -r ocrwatermeter && useradd --no-log-init -u 1010 -r -g ocrwatermeter ocrwatermeter
+
+#default datadir
+RUN mkdir /data && chown -R ocrwatermeter:ocrwatermeter /data
+VOLUME [ "/data" ]
 
 #install prereqs
 RUN apt-get update -qqy && DEBIAN_FRONTEND=noninteractive apt-get install -y \
@@ -49,7 +57,6 @@ RUN chmod +x OcrWaterMeter.Server
 EXPOSE 5000/tcp
 
 #User 
-RUN groupadd -g 1010 -r ocrwatermeter && useradd --no-log-init -u 1010 -r -g ocrwatermeter ocrwatermeter
 USER ocrwatermeter
 
 # run
