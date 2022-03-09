@@ -45,7 +45,7 @@ RUN apt-get update -qqy && DEBIAN_FRONTEND=noninteractive apt-get install -y \
 RUN wget https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
 RUN dpkg -i packages-microsoft-prod.deb
 RUN rm packages-microsoft-prod.deb
-RUN apt-get update -qqy && apt-get install -y aspnetcore-runtime-6.0
+RUN apt-get update -qqy && apt-get install -y aspnetcore-runtime-6.0 libleptonica-dev
 RUN eval apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 #copy OcrWaterMeter files
