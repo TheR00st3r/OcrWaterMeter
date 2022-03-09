@@ -9,6 +9,7 @@ namespace OcrWaterMeter.Shared
         private int _VverticalOffset;
         private int _Width;
         private int _Height;
+        private int _OcrValue;
         private int _Value;
         private decimal _Factor = 1;
 
@@ -52,6 +53,16 @@ namespace OcrWaterMeter.Shared
             set
             {
                 _Height = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int OcrValue
+        {
+            get => _OcrValue;
+            set
+            {
+                _OcrValue = value;
                 OnPropertyChanged();
             }
         }
