@@ -101,13 +101,7 @@ namespace OcrWaterMeter.Server.Controllers
                     {
                         number.Value = (int)Math.Floor(initialValue / number.Factor);
                         initialValue -= number.Value * number.Factor;
-                        if(number is DigitalNumber digitalNumber)
-						{
-                            digitalNumberCollection.Update(digitalNumber);
-                        }else if(number is AnalogNumber analogNumber)
-                        {
-                            analogNumberCollection.Update(analogNumber);
-                        }
+                        SaveNumber(number, digitalNumberCollection, analogNumberCollection);
                     }
                 }
             }
@@ -289,7 +283,7 @@ namespace OcrWaterMeter.Server.Controllers
                         var number = 10 / (360 / angle);
                         var value = (int)Math.Floor(number);
                         analogNumber.OcrValue = value;
-                        analogNumber.Value = value;
+                        //analogNumber.Value = value;
                         analogNumberCollection.Update(analogNumber);
                     }
                     catch (Exception e)
@@ -303,19 +297,28 @@ namespace OcrWaterMeter.Server.Controllers
                 {
                     var currentNumber = allNumbers.ElementAt(i);
 
-                    if (currentNumber is DigitalNumber)
+                    if (i == 0)
                     {
-                        if (i == 0)
+                        currentNumber.Value = currentNumber.OcrValue;
+                        SaveNumber(currentNumber, digitalNumberCollection, analogNumberCollection);
+                        continue;
+                    }
+
+                    var lastNumber = allNumbers.ElementAt(i - 1);
+                    if (currentNumber.OcrValue == currentNumber.Value + 1 && lastNumber.OcrValue < 8)
+                    {
+                        currentNumber.Value = currentNumber.OcrValue;
+                        SaveNumber(currentNumber, digitalNumberCollection, analogNumberCollection);
+                    }
+                    else
+                    {
+                        var nextNumbers = allNumbers.Skip(i + 1);
+                        if (nextNumbers.Any(x => x.OcrValue > x.Value))
                         {
                             currentNumber.Value = currentNumber.OcrValue;
-                            continue;
+                            SaveNumber(currentNumber, digitalNumberCollection, analogNumberCollection);
                         }
 
-                        var lastNumber = allNumbers.ElementAt(i - 1);
-                        if (currentNumber.OcrValue == currentNumber.Value + 1 && lastNumber.OcrValue < 8)
-                        {
-                            currentNumber.Value = currentNumber.OcrValue;
-                        }
                     }
                 }
 
@@ -336,6 +339,18 @@ namespace OcrWaterMeter.Server.Controllers
         private static double Distance(int x1, int y1, int x2, int y2)
         {
             return Math.Sqrt(Math.Pow(x1 - x2, 2) + Math.Pow(y1 - y2, 2));
+        }
+
+        private static void SaveNumber(NumberBase number, ILiteCollection<DigitalNumber> digitalNumberCollection, ILiteCollection<AnalogNumber> analogNumberCollection)
+        {
+            if (number is DigitalNumber digitalNumber)
+            {
+                digitalNumberCollection.Update(digitalNumber);
+            }
+            else if (number is AnalogNumber analogNumber)
+            {
+                analogNumberCollection.Update(analogNumber);
+            }
         }
     }
 }
