@@ -305,7 +305,8 @@ namespace OcrWaterMeter.Server.Controllers
                     }
 
                     var lastNumber = allNumbers.ElementAt(i - 1);
-                    if (currentNumber.OcrValue == currentNumber.Value + 1 && lastNumber.OcrValue < 8)
+                    if ((currentNumber.OcrValue == currentNumber.Value + 1 && lastNumber.OcrValue < 8)
+                        || (currentNumber.Factor < 1 && currentNumber.OcrValue > currentNumber.Value + 1 /* allow Jumps for small Numbers*/))
                     {
                         currentNumber.Value = currentNumber.OcrValue;
                         SaveNumber(currentNumber, digitalNumberCollection, analogNumberCollection);
