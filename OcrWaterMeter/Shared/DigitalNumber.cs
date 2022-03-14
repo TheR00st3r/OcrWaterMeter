@@ -11,6 +11,7 @@ namespace OcrWaterMeter.Shared
         private int _Height;
         private int _OcrValue;
         private int _Value;
+        private int _LastValue;
         private decimal _Factor = 1;
 
         public int Id { get; set; }
@@ -73,6 +74,16 @@ namespace OcrWaterMeter.Shared
             set
             {
                 _Value = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int LastValue
+        {
+            get => _LastValue;
+            set
+            {
+                _LastValue = value;
                 OnPropertyChanged();
             }
         }

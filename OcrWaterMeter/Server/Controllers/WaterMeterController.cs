@@ -100,6 +100,7 @@ namespace OcrWaterMeter.Server.Controllers
                     foreach (var number in allNumbers)
                     {
                         number.Value = (int)Math.Floor(initialValue / number.Factor);
+                        number.LastValue = number.Value;
                         initialValue -= number.Value * number.Factor;
                         SaveNumber(number, digitalNumberCollection, analogNumberCollection);
                     }
@@ -292,8 +293,8 @@ namespace OcrWaterMeter.Server.Controllers
                     }
                 }
 
-                var allNumbers = analogNumberCollection.FindAll().OfType<NumberBase>().Concat(digitalNumberCollection.FindAll()).OrderBy(x => x.Factor);
-                for (int i = 0; i < allNumbers.Count(); i++)
+                var allNumbers = analogNumberCollection.FindAll().OfType<NumberBase>().Concat(digitalNumberCollection.FindAll()).OrderBy(x => x.Factor).ToList();
+                for (int i = 0; i < allNumbers.Count; i++)
                 {
                     var currentNumber = allNumbers.ElementAt(i);
 
@@ -308,6 +309,7 @@ namespace OcrWaterMeter.Server.Controllers
                     if ((currentNumber.OcrValue == currentNumber.Value + 1 && lastNumber.OcrValue < 8)
                         || (currentNumber.Factor < 1 && currentNumber.OcrValue > currentNumber.Value + 1 /* allow Jumps for small Numbers*/))
                     {
+                        currentNumber.LastValue = currentNumber.Value;
                         currentNumber.Value = currentNumber.OcrValue;
                         SaveNumber(currentNumber, digitalNumberCollection, analogNumberCollection);
                     }
@@ -316,6 +318,7 @@ namespace OcrWaterMeter.Server.Controllers
                         var nextNumbers = allNumbers.Skip(i + 1);
                         if (nextNumbers.Any(x => x.OcrValue > x.Value))
                         {
+                            currentNumber.LastValue = currentNumber.Value;
                             currentNumber.Value = currentNumber.OcrValue;
                             SaveNumber(currentNumber, digitalNumberCollection, analogNumberCollection);
                         }
@@ -323,15 +326,22 @@ namespace OcrWaterMeter.Server.Controllers
                     }
                 }
 
-
                 result.DigitalNumbers = digitalNumberCollection.FindAll();
                 result.AnalogNumbers = analogNumberCollection.FindAll();
+                result.LastValue = result.DigitalNumbers.Sum(x => x.LastValue * x.Factor) + result.AnalogNumbers.Sum(x => x.LastValue * x.Factor);
                 result.Value = result.DigitalNumbers.Sum(x => x.Value * x.Factor) + result.AnalogNumbers.Sum(x => x.Value * x.Factor);
 
             }
             catch (Exception e)
             {
                 _Logger.LogError(e, "Error on Loading DebugData");
+
+                // In case of Exception try return last value;
+                var digitalNumberCollection = _DbContext.Context.GetCollection<DigitalNumber>();
+                var analogNumberCollection = _DbContext.Context.GetCollection<AnalogNumber>();
+                result.DigitalNumbers = digitalNumberCollection.FindAll();
+                result.AnalogNumbers = analogNumberCollection.FindAll();
+                result.Value = result.DigitalNumbers.Sum(x => x.Value * x.Factor) + result.AnalogNumbers.Sum(x => x.Value * x.Factor);
             }
 
             return result;

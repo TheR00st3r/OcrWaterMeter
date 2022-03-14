@@ -37,11 +37,13 @@ else
 								<small>Changing this Number updates the Values of all Numbers. So this can be used to reset Numbers if there is anything completly wrong.</small>
 							</div>
 
-							<div class="col-12 mb-3">
-								<label for="inputLastValue" class="form-label">Last Value</label>
-								<input type="number" class="form-control" id="inputLastValue" @bind="waterMeter.LastValue" readonly>
-							</div>
-
+							@if (waterMeter != null)
+							{
+								<div class="col-12 mb-3">
+									<label for="inputLastValue" class="form-label">Last Value</label>
+									<input type="number" class="form-control" id="inputLastValue" @bind="waterMeter.LastValue" readonly>
+								</div>
+							}
 							<div class="col-12 mb-3">
 								<label for="inputImageAngle" class="form-label">Rotationangle</label>
 								<input type="number" class="form-control" id="inputImageAngle" @bind="ImageAngle">
@@ -59,6 +61,10 @@ else
 							<div class="col-6 mb-3">
 								<label for="inputCropWidth" class="form-label">Crop Width</label>
 								<input type="number" class="form-control" id="inputCropWidth" @bind="CropWidth">
+							</div>
+							<div class="col-6 mb-3">
+								<label for="inputCropHeight" class="form-label">Crop Height</label>
+								<input type="number" class="form-control" id="inputCropHeight" @bind="CropHeight">
 							</div>
 							<div class="col-6 mb-3">
 								<label for="inputCropHeight" class="form-label">Crop Height</label>
