@@ -27,6 +27,7 @@ namespace OcrWaterMeter.Client.Pages
         private bool loading = true;
         private WaterMeterDebugData? waterMeter;
         private IEnumerable<ConfigValue> configValues = Enumerable.Empty<ConfigValue>();
+        private string version = string.Empty;
 
         private string _ImageSrc = string.Empty;
         private string ImageSrc
@@ -130,8 +131,9 @@ namespace OcrWaterMeter.Client.Pages
                 _CropWidth = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.CropWidth)?.Value ?? "0", CultureInfo.InvariantCulture);
                 _CropHeight = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.CropHeight)?.Value ?? "0", CultureInfo.InvariantCulture);
                 _MaxWaterPerHour = decimal.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.MaxWaterPerHour)?.Value ?? "4", CultureInfo.InvariantCulture);
-
             }
+
+            version = await Http.GetStringAsync("version");
 
             await UpdateData();
             loading = false;

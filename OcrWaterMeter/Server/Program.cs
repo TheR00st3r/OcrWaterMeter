@@ -1,7 +1,6 @@
 using OcrWaterMeter.Server.Database;
 
 var dbFolder = Environment.GetEnvironmentVariable("DATADIR");
-
 var liteDbName = Path.Combine(string.IsNullOrEmpty(dbFolder) ? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) : dbFolder, "WaterMeter.db");
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
@@ -44,5 +43,6 @@ app.UseRouting();
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
+app.MapGet("/version", () => Environment.GetEnvironmentVariable("BUILDNUMBER") ?? "unknown version" );
 
 app.Run();
