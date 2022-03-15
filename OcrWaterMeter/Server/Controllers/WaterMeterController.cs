@@ -90,7 +90,7 @@ namespace OcrWaterMeter.Server.Controllers
             configCollection.DeleteMany(x => x.Key == value.Key);
             configCollection.Insert(value);
 
-            if (value.Key.Equals(ConfigParamters.InitialValue))
+            if (value.Key.Equals(ConfigParameters.InitialValue))
             {
                 if (decimal.TryParse(value.Value, out var initialValue))
                 {
@@ -151,7 +151,7 @@ namespace OcrWaterMeter.Server.Controllers
 
                 if (image == null || image.Created < DateTime.Now.AddMinutes(-1))
                 {
-                    var imageSrc = configCollection.FindOne(x => x.Key == ConfigParamters.ImageSrc);
+                    var imageSrc = configCollection.FindOne(x => x.Key == ConfigParameters.ImageSrc);
                     using var httpClient = new HttpClient();
                     var imageData = await httpClient.GetByteArrayAsync(imageSrc.Value);
 
@@ -165,11 +165,11 @@ namespace OcrWaterMeter.Server.Controllers
 
                 }
 
-                var rotate = float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.ImageAngle)?.Value ?? "0", CultureInfo.InvariantCulture);
-                var offsetHorizontal = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropOffsetHorizontal)?.Value ?? "0", CultureInfo.InvariantCulture);
-                var offsetVertical = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropOffsetVertical)?.Value ?? "0", CultureInfo.InvariantCulture);
-                var sizeHorizontal = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropWidth)?.Value ?? "0", CultureInfo.InvariantCulture);
-                var sizeVertical = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParamters.CropHeight)?.Value ?? "0", CultureInfo.InvariantCulture);
+                var rotate = float.Parse(configCollection.FindOne(x => x.Key == ConfigParameters.ImageAngle)?.Value ?? "0", CultureInfo.InvariantCulture);
+                var offsetHorizontal = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParameters.CropOffsetHorizontal)?.Value ?? "0", CultureInfo.InvariantCulture);
+                var offsetVertical = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParameters.CropOffsetVertical)?.Value ?? "0", CultureInfo.InvariantCulture);
+                var sizeHorizontal = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParameters.CropWidth)?.Value ?? "0", CultureInfo.InvariantCulture);
+                var sizeVertical = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParameters.CropHeight)?.Value ?? "0", CultureInfo.InvariantCulture);
 
                 using var imageToClone = Image.Load<Rgba32>(image.Image);
                 using var rotateCopy = imageToClone.Clone(i => i.Rotate(RotateMode.Rotate180).Rotate(rotate));
@@ -284,7 +284,6 @@ namespace OcrWaterMeter.Server.Controllers
                         var number = 10 / (360 / angle);
                         var value = (int)Math.Floor(number);
                         analogNumber.OcrValue = value;
-                        //analogNumber.Value = value;
                         analogNumberCollection.Update(analogNumber);
                     }
                     catch (Exception e)
@@ -294,42 +293,46 @@ namespace OcrWaterMeter.Server.Controllers
                 }
 
                 var allNumbers = analogNumberCollection.FindAll().OfType<NumberBase>().Concat(digitalNumberCollection.FindAll()).OrderBy(x => x.Factor).ToList();
+                var lastLastValue = allNumbers.Sum(x => x.LastValue * x.Factor);
+
                 for (int i = 0; i < allNumbers.Count; i++)
                 {
                     var currentNumber = allNumbers.ElementAt(i);
 
                     if (i == 0)
                     {
+                        currentNumber.LastValue = currentNumber.Value;
                         currentNumber.Value = currentNumber.OcrValue;
-                        SaveNumber(currentNumber, digitalNumberCollection, analogNumberCollection);
                         continue;
                     }
 
-                    var lastNumber = allNumbers.ElementAt(i - 1);
-                    if ((currentNumber.OcrValue == currentNumber.Value + 1 && lastNumber.OcrValue < 8)
-                        || (currentNumber.Factor < 1 && currentNumber.OcrValue > currentNumber.Value + 1 /* allow Jumps for small Numbers*/))
-                    {
-                        currentNumber.LastValue = currentNumber.Value;
-                        currentNumber.Value = currentNumber.OcrValue;
-                        SaveNumber(currentNumber, digitalNumberCollection, analogNumberCollection);
-                    }
-                    else
-                    {
-                        var nextNumbers = allNumbers.Skip(i + 1);
-                        if (nextNumbers.Any(x => x.OcrValue > x.Value))
-                        {
-                            currentNumber.LastValue = currentNumber.Value;
-                            currentNumber.Value = currentNumber.OcrValue;
-                            SaveNumber(currentNumber, digitalNumberCollection, analogNumberCollection);
-                        }
-
-                    }
+                    currentNumber.LastValue = currentNumber.Value;
+                    currentNumber.Value = currentNumber.OcrValue;
                 }
 
                 result.DigitalNumbers = digitalNumberCollection.FindAll();
                 result.AnalogNumbers = analogNumberCollection.FindAll();
-                result.LastValue = result.DigitalNumbers.Sum(x => x.LastValue * x.Factor) + result.AnalogNumbers.Sum(x => x.LastValue * x.Factor);
-                result.Value = result.DigitalNumbers.Sum(x => x.Value * x.Factor) + result.AnalogNumbers.Sum(x => x.Value * x.Factor);
+                result.LastValue = allNumbers.Sum(x => x.LastValue * x.Factor);
+                result.Value = allNumbers.Sum(x => x.Value * x.Factor);
+                
+                var lastMeaserment = configCollection.FindOne(x => x.Key.Equals(ConfigParameters.LastMeasurement));
+                var maxWaterPerHour = configCollection.FindOne(x => x.Key.Equals(ConfigParameters.MaxWaterPerHour));
+                if (IsValidValue(result, lastMeaserment, maxWaterPerHour))
+                {
+                    foreach (var currentNumber in allNumbers)
+                    {
+                        SaveNumber(currentNumber, digitalNumberCollection, analogNumberCollection);
+                    }
+
+                    PostConfigValue(new ConfigValue(ConfigParameters.LastMeasurement, DateTime.Now.ToString()));
+                }
+                else
+                {
+                    // Value is not possible => return last value
+                    result.Value = result.LastValue;
+                    result.LastValue = lastLastValue;
+                }
+
 
             }
             catch (Exception e)
@@ -345,6 +348,34 @@ namespace OcrWaterMeter.Server.Controllers
             }
 
             return result;
+        }
+
+        private static bool IsValidValue(WaterMeterDebugData result, ConfigValue lastMeasurement, ConfigValue maxWaterPerHour)
+        {
+            if (result.Value < result.LastValue)
+            {
+                return false;
+            }
+
+            if (lastMeasurement != null && DateTime.TryParse(lastMeasurement.Value, out var lastMeasurementValue))
+            {
+                var difference = result.Value - result.LastValue;
+
+                if (difference <= 0)
+                {
+                    return false;
+                }
+
+                var hours = new decimal((DateTime.Now - lastMeasurementValue).TotalHours);
+                var differencePerHour = difference / hours;
+                var maxCmPerHour = maxWaterPerHour != null ? decimal.Parse(maxWaterPerHour.Value) : 4;
+                if (differencePerHour > maxCmPerHour)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static double Distance(int x1, int y1, int x2, int y2)

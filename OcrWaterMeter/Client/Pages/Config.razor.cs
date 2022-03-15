@@ -35,7 +35,7 @@ namespace OcrWaterMeter.Client.Pages
             set
             {
                 _ImageSrc = value;
-                _ = UpdateValue(ConfigParamters.ImageSrc, value.ToString());
+                _ = UpdateValue(ConfigParameters.ImageSrc, value.ToString());
             }
         }
 
@@ -46,7 +46,18 @@ namespace OcrWaterMeter.Client.Pages
             set
             {
                 _InitialValue = value;
-                _ = UpdateValue(ConfigParamters.InitialValue, value.ToString());
+                _ = UpdateValue(ConfigParameters.InitialValue, value.ToString());
+            }
+        }
+
+        private decimal _MaxWaterPerHour = 0;
+        private decimal MaxWaterPerHour
+        {
+            get => _MaxWaterPerHour;
+            set
+            {
+                _MaxWaterPerHour = value;
+                _ = UpdateValue(ConfigParameters.MaxWaterPerHour, value.ToString());
             }
         }
 
@@ -57,7 +68,7 @@ namespace OcrWaterMeter.Client.Pages
             set
             {
                 _ImageAngle = value;
-                _ = UpdateValue(ConfigParamters.ImageAngle, value.ToString(CultureInfo.InvariantCulture));
+                _ = UpdateValue(ConfigParameters.ImageAngle, value.ToString(CultureInfo.InvariantCulture));
             }
         }
 
@@ -68,7 +79,7 @@ namespace OcrWaterMeter.Client.Pages
             set
             {
                 _CropOffsetHorizontal = value;
-                _ = UpdateValue(ConfigParamters.CropOffsetHorizontal, value.ToString(CultureInfo.InvariantCulture));
+                _ = UpdateValue(ConfigParameters.CropOffsetHorizontal, value.ToString(CultureInfo.InvariantCulture));
             }
         }
 
@@ -79,7 +90,7 @@ namespace OcrWaterMeter.Client.Pages
             set
             {
                 _CropOffsetVertical = value;
-                _ = UpdateValue(ConfigParamters.CropOffsetVertical, value.ToString(CultureInfo.InvariantCulture));
+                _ = UpdateValue(ConfigParameters.CropOffsetVertical, value.ToString(CultureInfo.InvariantCulture));
             }
         }
 
@@ -91,7 +102,7 @@ namespace OcrWaterMeter.Client.Pages
             set
             {
                 _CropWidth = value;
-                _ = UpdateValue(ConfigParamters.CropWidth, value.ToString(CultureInfo.InvariantCulture));
+                _ = UpdateValue(ConfigParameters.CropWidth, value.ToString(CultureInfo.InvariantCulture));
             }
         }
 
@@ -102,7 +113,7 @@ namespace OcrWaterMeter.Client.Pages
             set
             {
                 _CropHeight = value;
-                _ = UpdateValue(ConfigParamters.CropHeight, value.ToString(CultureInfo.InvariantCulture));
+                _ = UpdateValue(ConfigParameters.CropHeight, value.ToString(CultureInfo.InvariantCulture));
             }
         }
 
@@ -111,13 +122,15 @@ namespace OcrWaterMeter.Client.Pages
             configValues = await Http.GetFromJsonAsync<IEnumerable<ConfigValue>>("WaterMeter/ConfigValues") ?? Enumerable.Empty<ConfigValue>();
             if (configValues.Any())
             {
-                _ImageSrc = configValues.FirstOrDefault(x => x.Key == ConfigParamters.ImageSrc)?.Value ?? string.Empty;
-                _InitialValue = decimal.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.InitialValue)?.Value ?? "0", CultureInfo.InvariantCulture);
-                _ImageAngle = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.ImageAngle)?.Value ?? "0", CultureInfo.InvariantCulture);
-                _CropOffsetHorizontal = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropOffsetHorizontal)?.Value ?? "0", CultureInfo.InvariantCulture);
-                _CropOffsetVertical = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropOffsetVertical)?.Value ?? "0", CultureInfo.InvariantCulture);
-                _CropWidth = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropWidth)?.Value ?? "0", CultureInfo.InvariantCulture);
-                _CropHeight = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParamters.CropHeight)?.Value ?? "0", CultureInfo.InvariantCulture);
+                _ImageSrc = configValues.FirstOrDefault(x => x.Key == ConfigParameters.ImageSrc)?.Value ?? string.Empty;
+                _InitialValue = decimal.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.InitialValue)?.Value ?? "0", CultureInfo.InvariantCulture);
+                _ImageAngle = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.ImageAngle)?.Value ?? "0", CultureInfo.InvariantCulture);
+                _CropOffsetHorizontal = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.CropOffsetHorizontal)?.Value ?? "0", CultureInfo.InvariantCulture);
+                _CropOffsetVertical = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.CropOffsetVertical)?.Value ?? "0", CultureInfo.InvariantCulture);
+                _CropWidth = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.CropWidth)?.Value ?? "0", CultureInfo.InvariantCulture);
+                _CropHeight = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.CropHeight)?.Value ?? "0", CultureInfo.InvariantCulture);
+                _MaxWaterPerHour = decimal.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.MaxWaterPerHour)?.Value ?? "4", CultureInfo.InvariantCulture);
+
             }
 
             await UpdateData();
