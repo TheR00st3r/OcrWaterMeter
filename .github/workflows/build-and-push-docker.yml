@@ -15,12 +15,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Output Run ID
-        run: echo ${{ github.run_id }}
-      - name: Output Run Number
-        run: echo ${{ github.run_number }}
-      - name: Output Run Attempt
-        run: echo ${{ github.run_attempt }}
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -34,6 +28,8 @@ jobs:
             hahni91/ocrwatermeter:latest
           build-args: |
             BUILDNODE=GitHub (Run Number: ${{ github.run_number }} Run ID: ${{ github.run_id }})
+            BUILDID=${{ github.run_id }}
+            BUILDNUMBER=${{ github.run_number }}
             SOURCE_COMMIT=${{ github.sha }}
           no-cache: true
       - name: Login to DockerHub

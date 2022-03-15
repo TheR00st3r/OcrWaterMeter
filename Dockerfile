@@ -26,7 +26,7 @@ RUN dotnet publish ./Server/OcrWaterMeter.Server.csproj -c Release -p:PublishPro
 # -----------
 
 FROM debian:11 
-LABEL org.opencontainers.image.authors="Alexander@volzit.de"
+LABEL org.opencontainers.image.authors="Alexander@volzit.de" 
 
 #dotnet config
 ENV ASPNETCORE_URLS="http://+:5000"
@@ -52,6 +52,16 @@ RUN eval apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 WORKDIR /OcrWaterMeter
 COPY --from=build /OcrWaterMeter/Server/bin/Release/net6.0/publish /OcrWaterMeter
 RUN chmod +x OcrWaterMeter.Server
+
+#versioning
+ARG BUILDNUMBER
+ENV BUILDNUMBER=$BUILDNUMBER
+ARG BUILDID
+ENV BUILDID=$BUILDID
+ARG SOURCE_COMMIT
+ENV SOURCE_COMMIT=$SOURCE_COMMIT
+ARG BUILDNODE
+ENV BUILDNODE=$SOURCE_COMMIT
 
 #fix libraries
 WORKDIR /OcrWaterMeter/x64
