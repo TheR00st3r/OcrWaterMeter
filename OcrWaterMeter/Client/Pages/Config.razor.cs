@@ -1,18 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components;
-using System.Net.Http;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.Web.Virtualization;
-using Microsoft.AspNetCore.Components.WebAssembly.Http;
-using Microsoft.JSInterop;
-using OcrWaterMeter.Client;
-using OcrWaterMeter.Client.Shared;
 using OcrWaterMeter.Shared;
 using System.Globalization;
 
@@ -23,11 +9,13 @@ namespace OcrWaterMeter.Client.Pages
         private readonly IList<DigitalNumber> DigitalNumbers = new List<DigitalNumber>();
         private readonly IList<AnalogNumber> AnalogNumbers = new List<AnalogNumber>();
 
-        private string ProcessTime = string.Empty;
+        private string processTime = string.Empty;
         private bool loading = true;
         private WaterMeterDebugData? waterMeter;
         private IEnumerable<ConfigValue> configValues = Enumerable.Empty<ConfigValue>();
         private string version = string.Empty;
+        private string build = string.Empty;
+        private string commit = string.Empty;
 
         private string _ImageSrc = string.Empty;
         private string ImageSrc
@@ -134,6 +122,8 @@ namespace OcrWaterMeter.Client.Pages
             }
 
             version = await Http.GetStringAsync("version");
+            build = await Http.GetStringAsync("build");
+            commit = await Http.GetStringAsync("commit");
 
             await UpdateData();
             loading = false;
@@ -171,7 +161,7 @@ namespace OcrWaterMeter.Client.Pages
         {
             await Http.PostAsJsonAsync("WaterMeter/ConfigValue", new ConfigValue(key, value));
             await UpdateData();
-            ProcessTime = DateTime.Now.Ticks.ToString();
+            processTime = DateTime.Now.Ticks.ToString();
         }
 
         private void AddNewDigitalNumber()
@@ -192,21 +182,21 @@ namespace OcrWaterMeter.Client.Pages
         {
             await Http.DeleteAsync($"WaterMeter/Number/{id}");
             await UpdateData();
-            ProcessTime = DateTime.Now.Ticks.ToString();
+            processTime = DateTime.Now.Ticks.ToString();
         }
 
         private async void DigitalNumberPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             await Http.PostAsJsonAsync("WaterMeter/DigitalNumber", sender as DigitalNumber);
             await UpdateData();
-            ProcessTime = DateTime.Now.Ticks.ToString();
+            processTime = DateTime.Now.Ticks.ToString();
         }
 
         private async void AnalogNumberPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             await Http.PostAsJsonAsync("WaterMeter/AnalogNumber", sender as AnalogNumber);
             await UpdateData();
-            ProcessTime = DateTime.Now.Ticks.ToString();
+            processTime = DateTime.Now.Ticks.ToString();
         }
 
         private int GetNextFreeNumber()

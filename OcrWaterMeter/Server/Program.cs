@@ -43,6 +43,8 @@ app.UseRouting();
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
-app.MapGet("/version", () => Environment.GetEnvironmentVariable("BUILDNUMBER") ?? "unknown version" );
+app.MapGet("/version", () => Environment.GetEnvironmentVariable("BUILDNUMBER") ?? "unknown version");
+app.MapGet("/build", () => Environment.GetEnvironmentVariable("BUILDID") ?? "unknown buildid");
+app.MapGet("/commit", () => Environment.GetEnvironmentVariable("SOURCE_COMMIT") ?? "unknown version");
 
 app.Run();

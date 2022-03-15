@@ -134,7 +134,7 @@ else
 											<input type="number" class="form-control" @bind="number.Height">
 										</td>
 										<td>
-											<img src="WaterMeter/Image/@ImageType.Number/@number.Id/?@ProcessTime" class="preview-image" />
+											<img src="WaterMeter/Image/@ImageType.Number/@number.Id/?@processTime" class="preview-image" />
 										</td>
 										<td>
 											<input type="number" class="form-control" @bind="number.OcrValue" readonly>
@@ -210,7 +210,7 @@ else
 											<input type="number" class="form-control" @bind="number.Height">
 										</td>
 										<td>
-											<img src="WaterMeter/Image/@ImageType.Number/@number.Id/?@ProcessTime" class="preview-image" />
+											<img src="WaterMeter/Image/@ImageType.Number/@number.Id/?@processTime" class="preview-image" />
 										</td>
 										<td>
 											<input type="number" class="form-control" @bind="number.OcrValue" readonly>
@@ -242,7 +242,7 @@ else
 
 				<div class="col-12 ">
 					<div class="overlay-wrapper">
-						<img src="WaterMeter/Image/@ImageType.ProcessedImage?@ProcessTime" class="preview-image" />
+						<img src="WaterMeter/Image/@ImageType.ProcessedImage?@processTime" class="preview-image" />
 						@foreach (var digitalNumber in DigitalNumbers)
 						{
 							<div class="overlay-box" style="top:@(digitalNumber.VerticalOffset + "px");left:@(digitalNumber.HorizontalOffset + "px");width:@(digitalNumber.Width + "px");height:@(digitalNumber.Height + "px");">@digitalNumber.Id</div>
@@ -266,5 +266,7 @@ else
 
 	<div>
 		<p>Version: @version</p>
+		<p>Build: @build</p>
+		<p>Commit: @commit</p>
 	</div>
 }
