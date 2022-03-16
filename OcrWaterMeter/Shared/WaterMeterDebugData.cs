@@ -11,5 +11,7 @@ namespace OcrWaterMeter.Shared
         public IEnumerable<DigitalNumber> DigitalNumbers { get; set; } = Enumerable.Empty<DigitalNumber>();
 
         public IEnumerable<AnalogNumber> AnalogNumbers { get; set; } = Enumerable.Empty<AnalogNumber>();
+        public DateTime LastValueDate { get; set; }
+        public DateTime ValueDate { get; set; }
     }
 }

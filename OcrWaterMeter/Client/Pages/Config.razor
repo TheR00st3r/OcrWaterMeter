@@ -15,8 +15,6 @@
 }
 else
 {
-	<h2>@waterMeter?.Value m3</h2>
-
 	<div class="row">
 		<div class="col-12 col-lg-6">
 
@@ -37,18 +35,31 @@ else
 								<small>Changing this Number updates the Values of all Numbers. So this can be used to reset Numbers if there is anything completly wrong.</small>
 							</div>
 
+							@if (waterMeter != null)
+							{
+								<div class="col-12 mb-3">
+									<label for="inputValue" class="form-label">Current Value</label>
+									<div class="input-group">
+										<input type="number" class="form-control" id="inputValue" @bind="waterMeter.Value" readonly>
+										<span class="input-group-text" id="inputValueAddon">@waterMeter.ValueDate.ToShortTimeString()</span>
+									</div>
+								</div>
+
+								<div class="col-12 mb-3">
+									<label for="inputLastValue" class="form-label">Last Value</label>
+									<div class="input-group">
+										<input type="number" class="form-control" id="inputLastValue" @bind="waterMeter.LastValue" readonly>
+										<span class="input-group-text" id="inputLastValueAddon">@waterMeter.LastValueDate.ToShortTimeString()</span>
+									</div>
+								</div>
+							}
+
 							<div class="col-12 mb-3">
 								<label for="inputMaxWaterPerHourValue" class="form-label">Max. amount of Water per hour  <small>(Q3 on watermeter)</small></label>
 								<input type="number" class="form-control" id="inputMaxWaterPerHourValue" @bind="MaxWaterPerHour">
 							</div>
 
-							@if (waterMeter != null)
-							{
-								<div class="col-12 mb-3">
-									<label for="inputLastValue" class="form-label">Last Value</label>
-									<input type="number" class="form-control" id="inputLastValue" @bind="waterMeter.LastValue" readonly>
-								</div>
-							}
+						
 							<div class="col-12 mb-3">
 								<label for="inputImageAngle" class="form-label">Rotationangle</label>
 								<input type="number" class="form-control" id="inputImageAngle" @bind="ImageAngle">
@@ -265,8 +276,8 @@ else
 	</div>
 
 	<div>
-		<p>Version: @version</p>
-		<p>Build: @build</p>
-		<p>Commit: @commit</p>
+		<a href="https://github.com/TheR00st3r/OcrWaterMeter">Project Site</a>
+		<a href="https://github.com/TheR00st3r/OcrWaterMeter/actions/runs/@build">Build @version</a>
+		<a href="https://github.com/TheR00st3r/OcrWaterMeter/commit/@commit">Version Commit</a>
 	</div>
 }

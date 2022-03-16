@@ -159,7 +159,7 @@ namespace OcrWaterMeter.Server.Controllers
                     {
                         imageCollection.DeleteMany(i => i.ImageType == ImageType.SrcImage);
                     }
-
+                    
                     image = new ImageData(imageData, DateTime.Now, ImageType.SrcImage);
                     imageCollection.Insert(image);
 
@@ -314,17 +314,21 @@ namespace OcrWaterMeter.Server.Controllers
                 result.AnalogNumbers = analogNumberCollection.FindAll();
                 result.LastValue = allNumbers.Sum(x => x.LastValue * x.Factor);
                 result.Value = allNumbers.Sum(x => x.Value * x.Factor);
-                
+
                 var lastMeaserment = configCollection.FindOne(x => x.Key.Equals(ConfigParameters.LastMeasurement));
                 var maxWaterPerHour = configCollection.FindOne(x => x.Key.Equals(ConfigParameters.MaxWaterPerHour));
-                if (IsValidValue(result, lastMeaserment, maxWaterPerHour))
+
+                result.LastValueDate = string.IsNullOrEmpty(lastMeaserment?.Value) ? default : DateTime.Parse(lastMeaserment.Value);
+                result.ValueDate = DateTime.Now;
+
+                if (IsValidValue(result, result.LastValueDate, result.ValueDate, maxWaterPerHour))
                 {
                     foreach (var currentNumber in allNumbers)
                     {
                         SaveNumber(currentNumber, digitalNumberCollection, analogNumberCollection);
                     }
 
-                    PostConfigValue(new ConfigValue(ConfigParameters.LastMeasurement, DateTime.Now.ToString()));
+                    PostConfigValue(new ConfigValue(ConfigParameters.LastMeasurement, result.ValueDate.ToString()));
                 }
                 else
                 {
@@ -332,8 +336,6 @@ namespace OcrWaterMeter.Server.Controllers
                     result.Value = result.LastValue;
                     result.LastValue = lastLastValue;
                 }
-
-
             }
             catch (Exception e)
             {
@@ -350,28 +352,26 @@ namespace OcrWaterMeter.Server.Controllers
             return result;
         }
 
-        private static bool IsValidValue(WaterMeterDebugData result, ConfigValue lastMeasurement, ConfigValue maxWaterPerHour)
+        private static bool IsValidValue(WaterMeterDebugData result, DateTime lastMeasurement, DateTime currentMeasurement, ConfigValue maxWaterPerHour)
         {
             if (result.Value < result.LastValue)
             {
                 return false;
             }
 
-            if (lastMeasurement != null && DateTime.TryParse(lastMeasurement.Value, out var lastMeasurementValue))
+            if (lastMeasurement != default)
             {
                 var difference = result.Value - result.LastValue;
 
-                if (difference <= 0)
+                if (difference > 0)
                 {
-                    return false;
-                }
-
-                var hours = new decimal((DateTime.Now - lastMeasurementValue).TotalHours);
-                var differencePerHour = difference / hours;
-                var maxCmPerHour = maxWaterPerHour != null ? decimal.Parse(maxWaterPerHour.Value) : 4;
-                if (differencePerHour > maxCmPerHour)
-                {
-                    return false;
+                    var hours = new decimal((currentMeasurement - lastMeasurement).TotalHours);
+                    var differencePerHour = difference / hours;
+                    var maxCmPerHour = maxWaterPerHour != null ? decimal.Parse(maxWaterPerHour.Value) : 4;
+                    if (differencePerHour > maxCmPerHour)
+                    {
+                        return false;
+                    }
                 }
             }
 
