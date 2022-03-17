@@ -306,8 +306,17 @@ namespace OcrWaterMeter.Server.Controllers
                         continue;
                     }
 
-                    currentNumber.LastValue = currentNumber.Value;
-                    currentNumber.Value = currentNumber.OcrValue;
+                    var lastNumber = allNumbers.ElementAt(i - 1);
+                    if ((currentNumber.OcrValue == currentNumber.Value + 1 && lastNumber.OcrValue < 8)
+                        || currentNumber.OcrValue > currentNumber.Value + 1
+                        || (currentNumber.Factor < 1 && currentNumber.OcrValue > currentNumber.Value + 1 /* allow Jumps for small Numbers*/))
+                    {
+                        currentNumber.LastValue = currentNumber.Value;
+                        currentNumber.Value = currentNumber.OcrValue;
+                    }
+
+                    //currentNumber.LastValue = currentNumber.Value;
+                    //currentNumber.Value = currentNumber.OcrValue;
                 }
 
                 result.DigitalNumbers = digitalNumberCollection.FindAll();
@@ -327,8 +336,6 @@ namespace OcrWaterMeter.Server.Controllers
                     {
                         SaveNumber(currentNumber, digitalNumberCollection, analogNumberCollection);
                     }
-
-                    PostConfigValue(new ConfigValue(ConfigParameters.LastMeasurement, result.ValueDate.ToString()));
                 }
                 else
                 {
@@ -336,6 +343,8 @@ namespace OcrWaterMeter.Server.Controllers
                     result.Value = result.LastValue;
                     result.LastValue = lastLastValue;
                 }
+
+                PostConfigValue(new ConfigValue(ConfigParameters.LastMeasurement, result.ValueDate.ToString()));
             }
             catch (Exception e)
             {
