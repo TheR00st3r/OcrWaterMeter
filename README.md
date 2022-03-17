@@ -28,3 +28,4 @@ You can find a image on [Docker Hub](https://hub.docker.com/r/hahni91/ocrwaterme
 Configuration: https://host:5000/config
 Pure Value: https://host:5000/WaterMeter/Value
 
+
