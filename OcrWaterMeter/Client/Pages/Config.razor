@@ -59,7 +59,7 @@ else
 								<input type="number" class="form-control" id="inputMaxWaterPerHourValue" @bind="MaxWaterPerHour">
 							</div>
 
-						
+
 							<div class="col-12 mb-3">
 								<label for="inputImageAngle" class="form-label">Rotationangle</label>
 								<input type="number" class="form-control" id="inputImageAngle" @bind="ImageAngle">
@@ -82,9 +82,29 @@ else
 								<label for="inputCropHeight" class="form-label">Crop Height</label>
 								<input type="number" class="form-control" id="inputCropHeight" @bind="CropHeight">
 							</div>
+						
 							<div class="col-6 mb-3">
-								<label for="inputCropHeight" class="form-label">Crop Height</label>
-								<input type="number" class="form-control" id="inputCropHeight" @bind="CropHeight">
+								<label for="inputLightness" class="form-label">Lightness</label>
+								<input type="number" class="form-control" id="inputLightness" @bind="Lightness">
+							</div>
+							<div class="col-6 mb-3">
+								<label for="inputContrast" class="form-label">Contrast</label>
+								<input type="number" class="form-control" id="inputContrast" @bind="Contrast">
+							</div>
+
+							<div class="col-4 mb-3">
+								<label for="inputAnalogColorR" class="form-label">AnalogColor R</label>
+								<input type="number" class="form-control" id="inputAnalogColorR" @bind="AnalogColorR">
+							</div>
+
+							<div class="col-4 mb-3">
+								<label for="inputAnalogColorG" class="form-label">AnalogColor G</label>
+								<input type="number" class="form-control" id="inputAnalogColorG" @bind="AnalogColorG">
+							</div>
+
+							<div class="col-4 mb-3">
+								<label for="inputAnalogColorB" class="form-label">AnalogColor B</label>
+								<input type="number" class="form-control" id="inputAnalogColorB" @bind="AnalogColorB">
 							</div>
 						</div>
 					</div>
@@ -183,6 +203,7 @@ else
 									<th>Width</th>
 									<th>Height</th>
 									<th>Image</th>
+									<th>CenterColor</th>
 									<th>OcrValue</th>
 									<th>Value</th>
 									<th></th>
@@ -224,11 +245,16 @@ else
 											<img src="WaterMeter/Image/@ImageType.Number/@number.Id/?@processTime" class="preview-image" />
 										</td>
 										<td>
+											<div>RGB:</div>
+											<div>@number.CenterColorR|@number.CenterColorG|@number.CenterColorB</div>
+										</td>
+										<td>
 											<input type="number" class="form-control" @bind="number.OcrValue" readonly>
 										</td>
 										<td>
 											<input type="number" class="form-control" @bind="number.Value" readonly>
 										</td>
+										
 										<td>
 											<button @onclick="() => RemoveNumber(number.Id)">Delete</button>
 										</td>

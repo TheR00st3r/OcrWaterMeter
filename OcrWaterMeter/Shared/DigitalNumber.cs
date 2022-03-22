@@ -100,7 +100,7 @@ namespace OcrWaterMeter.Shared
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
@@ -113,6 +113,38 @@ namespace OcrWaterMeter.Shared
 
     public class AnalogNumber : NumberBase
     {
+        private byte _CenterColorR;
+        private byte _CenterColorG;
+        private byte _CenterColorB;
 
+        public byte CenterColorR
+        {
+            get => _CenterColorR;
+            set
+            {
+                _CenterColorR = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public byte CenterColorG
+        {
+            get => _CenterColorG;
+            set
+            {
+                _CenterColorG = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public byte CenterColorB
+        {
+            get => _CenterColorB;
+            set
+            {
+                _CenterColorB = value;
+                OnPropertyChanged();
+            }
+        }
     }
 }

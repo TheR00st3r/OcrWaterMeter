@@ -159,7 +159,7 @@ namespace OcrWaterMeter.Server.Controllers
                     {
                         imageCollection.DeleteMany(i => i.ImageType == ImageType.SrcImage);
                     }
-                    
+
                     image = new ImageData(imageData, DateTime.Now, ImageType.SrcImage);
                     imageCollection.Insert(image);
 
@@ -170,6 +170,11 @@ namespace OcrWaterMeter.Server.Controllers
                 var offsetVertical = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParameters.CropOffsetVertical)?.Value ?? "0", CultureInfo.InvariantCulture);
                 var sizeHorizontal = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParameters.CropWidth)?.Value ?? "0", CultureInfo.InvariantCulture);
                 var sizeVertical = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParameters.CropHeight)?.Value ?? "0", CultureInfo.InvariantCulture);
+                var lightness = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParameters.Lightness)?.Value ?? "1", CultureInfo.InvariantCulture);
+                var contrast = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParameters.Contrast)?.Value ?? "1", CultureInfo.InvariantCulture);
+                var analogColorR = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParameters.AnalogColorR)?.Value ?? "150", CultureInfo.InvariantCulture);
+                var analogColorG = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParameters.AnalogColorG)?.Value ?? "50", CultureInfo.InvariantCulture);
+                var analogColorB = (int)float.Parse(configCollection.FindOne(x => x.Key == ConfigParameters.AnalogColorB)?.Value ?? "50", CultureInfo.InvariantCulture);
 
                 using var imageToClone = Image.Load<Rgba32>(image.Image);
                 using var rotateCopy = imageToClone.Clone(i => i.Rotate(RotateMode.Rotate180).Rotate(rotate));
@@ -178,7 +183,7 @@ namespace OcrWaterMeter.Server.Controllers
                 sizeHorizontal = sizeHorizontal <= 0 ? rotateCopy.Width - offsetHorizontal : sizeHorizontal;
                 sizeVertical = sizeVertical <= 0 ? rotateCopy.Height - offsetVertical : sizeVertical;
 
-                using var cropCopy = rotateCopy.Clone(i => i.Crop(new Rectangle(offsetHorizontal, offsetVertical, sizeHorizontal, sizeVertical)));
+                using var cropCopy = rotateCopy.Clone(i => i.Crop(new Rectangle(offsetHorizontal, offsetVertical, sizeHorizontal, sizeVertical)).Lightness(1.1f).Contrast(1.2f));
 
                 using var ms = new MemoryStream();
                 cropCopy.Save(ms, new JpegEncoder());
@@ -191,6 +196,8 @@ namespace OcrWaterMeter.Server.Controllers
                 imageCollection.Insert(image);
 
                 using var engine = new TesseractEngine("tessdata", "eng", EngineMode.Default);
+
+                engine.SetVariable("tessedit_char_whitelist", "0123465789");
 
                 var digitalNumberCollection = _DbContext.Context.GetCollection<DigitalNumber>();
                 imageCollection.DeleteMany(x => x.ImageType == ImageType.Number);
@@ -230,19 +237,24 @@ namespace OcrWaterMeter.Server.Controllers
                     {
                         using var digitalNumberCopy = cropCopy.Clone(i => i.Crop(new Rectangle(analogNumber.HorizontalOffset, analogNumber.VerticalOffset, analogNumber.Width, analogNumber.Height)));
                         using var digitalNumberStream = new MemoryStream();
-                        digitalNumberCopy.Save(digitalNumberStream, new JpegEncoder());
-
+                        digitalNumberCopy.Save(digitalNumberStream, new JpegEncoder() { Quality = 100 });
                         var numberImage = new ImageData(digitalNumberStream.ToArray(), DateTime.Now, ImageType.Number, analogNumber.Id);
                         imageCollection.Insert(numberImage);
 
                         var centerX = digitalNumberCopy.Width / 2;
                         var centerY = digitalNumberCopy.Height / 2;
 
+                        var centerPixel = digitalNumberCopy[centerX, centerY];
+
+                        analogNumber.CenterColorR = centerPixel.R;
+                        analogNumber.CenterColorG = centerPixel.G;
+                        analogNumber.CenterColorB = centerPixel.B;
 
                         var farestX = centerX;
                         var farestY = centerY;
 
                         var farestDistance = 0d;
+
                         digitalNumberCopy.ProcessPixelRows(accessor =>
                         {
                             for (int y = 0; y < accessor.Height; y++)
@@ -250,9 +262,11 @@ namespace OcrWaterMeter.Server.Controllers
                                 Span<Rgba32> pixelRow = accessor.GetRowSpan(y);
                                 foreach (ref Rgba32 pixel in pixelRow)
                                 {
+                                    var horizontalIndex = pixelRow.IndexOf(pixel);
+
+                                  
                                     if (pixel.R > 150 && pixel.G < 50 && pixel.B < 50)
                                     {
-                                        var horizontalIndex = pixelRow.IndexOf(pixel);
                                         var verticalIndex = y;
 
                                         var distance = Distance(horizontalIndex, verticalIndex, centerX, centerY);
@@ -314,9 +328,6 @@ namespace OcrWaterMeter.Server.Controllers
                         currentNumber.LastValue = currentNumber.Value;
                         currentNumber.Value = currentNumber.OcrValue;
                     }
-
-                    //currentNumber.LastValue = currentNumber.Value;
-                    //currentNumber.Value = currentNumber.OcrValue;
                 }
 
                 result.DigitalNumbers = digitalNumberCollection.FindAll();

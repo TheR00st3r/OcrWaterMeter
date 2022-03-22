@@ -17,6 +17,8 @@ namespace OcrWaterMeter.Client.Pages
         private string build = string.Empty;
         private string commit = string.Empty;
 
+        #region ConfigValue Properties
+
         private string _ImageSrc = string.Empty;
         private string ImageSrc
         {
@@ -83,7 +85,6 @@ namespace OcrWaterMeter.Client.Pages
             }
         }
 
-
         private float _CropWidth;
         private float CropWidth
         {
@@ -106,6 +107,63 @@ namespace OcrWaterMeter.Client.Pages
             }
         }
 
+        private float _Lightness;
+        private float Lightness
+        {
+            get => _Lightness;
+            set
+            {
+                _Lightness = value;
+                _ = UpdateValue(ConfigParameters.Lightness, value.ToString(CultureInfo.InvariantCulture));
+            }
+        }
+
+        private float _Contrast;
+        private float Contrast
+        {
+            get => _Contrast;
+            set
+            {
+                _Contrast = value;
+                _ = UpdateValue(ConfigParameters.Contrast, value.ToString(CultureInfo.InvariantCulture));
+            }
+        }
+
+        private byte _AnalogColorR;
+        private byte AnalogColorR
+        {
+            get => _AnalogColorR;
+            set
+            {
+                _AnalogColorR = value;
+                _ = UpdateValue(ConfigParameters.AnalogColorR, value.ToString(CultureInfo.InvariantCulture));
+            }
+        }
+
+        private byte _AnalogColorG;
+        private byte AnalogColorG
+        {
+            get => _AnalogColorG;
+            set
+            {
+                _AnalogColorG = value;
+                _ = UpdateValue(ConfigParameters.AnalogColorG, value.ToString(CultureInfo.InvariantCulture));
+            }
+        }
+
+        private byte _AnalogColorB;
+        private byte AnalogColorB
+        {
+            get => _AnalogColorB;
+            set
+            {
+                _AnalogColorB = value;
+                _ = UpdateValue(ConfigParameters.AnalogColorB, value.ToString(CultureInfo.InvariantCulture));
+            }
+        }
+
+        #endregion
+
         protected override async Task OnInitializedAsync()
         {
             configValues = await Http.GetFromJsonAsync<IEnumerable<ConfigValue>>("WaterMeter/ConfigValues") ?? Enumerable.Empty<ConfigValue>();
@@ -118,6 +176,11 @@ namespace OcrWaterMeter.Client.Pages
                 _CropOffsetVertical = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.CropOffsetVertical)?.Value ?? "0", CultureInfo.InvariantCulture);
                 _CropWidth = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.CropWidth)?.Value ?? "0", CultureInfo.InvariantCulture);
                 _CropHeight = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.CropHeight)?.Value ?? "0", CultureInfo.InvariantCulture);
+                _Lightness = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.Lightness)?.Value ?? "1", CultureInfo.InvariantCulture);
+                _Contrast = float.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.Contrast)?.Value ?? "1", CultureInfo.InvariantCulture);
+                _AnalogColorR = byte.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.AnalogColorR)?.Value ?? "150", CultureInfo.InvariantCulture);
+                _AnalogColorG = byte.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.AnalogColorG)?.Value ?? "50", CultureInfo.InvariantCulture);
+                _AnalogColorB = byte.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.AnalogColorB)?.Value ?? "50", CultureInfo.InvariantCulture);
                 _MaxWaterPerHour = decimal.Parse(configValues.FirstOrDefault(x => x.Key == ConfigParameters.MaxWaterPerHour)?.Value ?? "4", CultureInfo.InvariantCulture);
             }
 
