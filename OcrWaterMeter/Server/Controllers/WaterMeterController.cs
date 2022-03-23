@@ -348,9 +348,9 @@ namespace OcrWaterMeter.Server.Controllers
                         SaveNumber(currentNumber, digitalNumberCollection, analogNumberCollection);
                     }
 
-                    PostConfigValue(new ConfigValue(ConfigParameters.LastMeasurement, result.ValueDate.ToString()));
+                    PostConfigValue(new ConfigValue(ConfigParameters.LastMeasurement, result.ValueDate.ToUniversalTime().ToString()));
 
-                    _Logger.LogWarning($"Return Value '{result.Value}'");
+                    _Logger.LogInformation($"Return Value '{result.Value}'");
                 }
                 else
                 {
@@ -396,7 +396,7 @@ namespace OcrWaterMeter.Server.Controllers
                     var maxCmPerHour = maxWaterPerHour != null ? decimal.Parse(maxWaterPerHour.Value) : 4;
                     if (differencePerHour > maxCmPerHour)
                     {
-                        _Logger.LogWarning($"Ivalid Value '{result.Value}' taking last Value '{result.LastValue}'. Value increased to fast. {difference} m3 in {hours/60} minutes.");
+                        _Logger.LogWarning($"Ivalid Value '{result.Value}' taking last Value '{result.LastValue}'. Value increased to fast. {difference} m3 in {hours/60} minutes. From {lastMeasurement} to {currentMeasurement}");
                         return false;
                     }
                 }
