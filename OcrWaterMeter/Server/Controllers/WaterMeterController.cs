@@ -105,7 +105,7 @@ namespace OcrWaterMeter.Server.Controllers
                         SaveNumber(number, digitalNumberCollection, analogNumberCollection);
                     }
 
-                    PostConfigValue(new ConfigValue(ConfigParameters.LastMeasurement, DateTime.Now.ToFileTimeUtc().ToString()));
+                    PostConfigValue(new ConfigValue(ConfigParameters.LastMeasurement, DateTime.UtcNow.ToFileTimeUtc().ToString()));
                 }
             }
 
@@ -151,7 +151,7 @@ namespace OcrWaterMeter.Server.Controllers
                 var image = imageCollection.FindOne(x => x.ImageType == ImageType.SrcImage);
 
 
-                if (image == null || image.Created < DateTime.Now.AddMinutes(-1))
+                if (image == null || image.Created < DateTime.UtcNow.AddMinutes(-1))
                 {
                     var imageSrc = configCollection.FindOne(x => x.Key == ConfigParameters.ImageSrc);
                     using var httpClient = new HttpClient();
@@ -162,7 +162,7 @@ namespace OcrWaterMeter.Server.Controllers
                         imageCollection.DeleteMany(i => i.ImageType == ImageType.SrcImage);
                     }
 
-                    image = new ImageData(imageData, DateTime.Now, ImageType.SrcImage);
+                    image = new ImageData(imageData, DateTime.UtcNow, ImageType.SrcImage);
                     imageCollection.Insert(image);
 
                 }
@@ -194,7 +194,7 @@ namespace OcrWaterMeter.Server.Controllers
                 {
                     imageCollection.DeleteMany(i => i.ImageType == ImageType.ProcessedImage);
                 }
-                image = new ImageData(ms.ToArray(), DateTime.Now, ImageType.ProcessedImage);
+                image = new ImageData(ms.ToArray(), DateTime.UtcNow, ImageType.ProcessedImage);
                 imageCollection.Insert(image);
 
                 using var engine = new TesseractEngine("tessdata", "eng", EngineMode.Default);
@@ -211,7 +211,7 @@ namespace OcrWaterMeter.Server.Controllers
                         using var digitalNumberStream = new MemoryStream();
                         digitalNumberCopy.Save(digitalNumberStream, new JpegEncoder());
 
-                        var numberImage = new ImageData(digitalNumberStream.ToArray(), DateTime.Now, ImageType.Number, digitalNumber.Id);
+                        var numberImage = new ImageData(digitalNumberStream.ToArray(), DateTime.UtcNow, ImageType.Number, digitalNumber.Id);
                         imageCollection.Insert(numberImage);
 
                         using (var img = Pix.LoadFromMemory(numberImage.Image))
@@ -240,7 +240,7 @@ namespace OcrWaterMeter.Server.Controllers
                         using var digitalNumberCopy = cropCopy.Clone(i => i.Crop(new Rectangle(analogNumber.HorizontalOffset, analogNumber.VerticalOffset, analogNumber.Width, analogNumber.Height)));
                         using var digitalNumberStream = new MemoryStream();
                         digitalNumberCopy.Save(digitalNumberStream, new JpegEncoder() { Quality = 100 });
-                        var numberImage = new ImageData(digitalNumberStream.ToArray(), DateTime.Now, ImageType.Number, analogNumber.Id);
+                        var numberImage = new ImageData(digitalNumberStream.ToArray(), DateTime.UtcNow, ImageType.Number, analogNumber.Id);
                         imageCollection.Insert(numberImage);
 
                         var centerX = digitalNumberCopy.Width / 2;
@@ -341,7 +341,7 @@ namespace OcrWaterMeter.Server.Controllers
                 var maxWaterPerHour = configCollection.FindOne(x => x.Key.Equals(ConfigParameters.MaxWaterPerHour));
 
                 result.LastValueDate = string.IsNullOrEmpty(lastMeaserment?.Value) ? default : DateTime.FromFileTimeUtc(long.Parse(lastMeaserment.Value));
-                result.ValueDate = DateTime.Now;
+                result.ValueDate = DateTime.UtcNow;
 
                 if (IsValidValue(result, result.LastValueDate, result.ValueDate, maxWaterPerHour))
                 {
