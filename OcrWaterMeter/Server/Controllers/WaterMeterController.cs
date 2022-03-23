@@ -104,6 +104,8 @@ namespace OcrWaterMeter.Server.Controllers
                         initialValue -= number.Value * number.Factor;
                         SaveNumber(number, digitalNumberCollection, analogNumberCollection);
                     }
+
+                    PostConfigValue(new ConfigValue(ConfigParameters.LastMeasurement, DateTime.Now.ToFileTimeUtc().ToString()));
                 }
             }
 
@@ -338,7 +340,7 @@ namespace OcrWaterMeter.Server.Controllers
                 var lastMeaserment = configCollection.FindOne(x => x.Key.Equals(ConfigParameters.LastMeasurement));
                 var maxWaterPerHour = configCollection.FindOne(x => x.Key.Equals(ConfigParameters.MaxWaterPerHour));
 
-                result.LastValueDate = string.IsNullOrEmpty(lastMeaserment?.Value) ? default : DateTime.Parse(lastMeaserment.Value);
+                result.LastValueDate = string.IsNullOrEmpty(lastMeaserment?.Value) ? default : DateTime.FromFileTimeUtc(long.Parse(lastMeaserment.Value));
                 result.ValueDate = DateTime.Now;
 
                 if (IsValidValue(result, result.LastValueDate, result.ValueDate, maxWaterPerHour))
@@ -348,7 +350,7 @@ namespace OcrWaterMeter.Server.Controllers
                         SaveNumber(currentNumber, digitalNumberCollection, analogNumberCollection);
                     }
 
-                    PostConfigValue(new ConfigValue(ConfigParameters.LastMeasurement, result.ValueDate.ToUniversalTime().ToString()));
+                    PostConfigValue(new ConfigValue(ConfigParameters.LastMeasurement, result.ValueDate.ToFileTimeUtc().ToString()));
 
                     _Logger.LogInformation($"Return Value '{result.Value}'");
                 }
