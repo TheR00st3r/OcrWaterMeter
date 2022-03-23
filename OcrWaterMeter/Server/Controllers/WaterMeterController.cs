@@ -354,7 +354,6 @@ namespace OcrWaterMeter.Server.Controllers
                 }
                 else
                 {
-                    _Logger.LogWarning($"Ivalid Value '{result.Value}' taking last Value '{result.LastValue}'");
 
                     // Value is not possible => return last value
                     result.Value = result.LastValue;
@@ -378,10 +377,11 @@ namespace OcrWaterMeter.Server.Controllers
             return result;
         }
 
-        private static bool IsValidValue(WaterMeterDebugData result, DateTime lastMeasurement, DateTime currentMeasurement, ConfigValue maxWaterPerHour)
+        private bool IsValidValue(WaterMeterDebugData result, DateTime lastMeasurement, DateTime currentMeasurement, ConfigValue maxWaterPerHour)
         {
             if (result.Value < result.LastValue)
             {
+                _Logger.LogWarning($"Ivalid Value '{result.Value}' taking last Value '{result.LastValue}'. Value smaller than last value.");
                 return false;
             }
 
@@ -396,6 +396,7 @@ namespace OcrWaterMeter.Server.Controllers
                     var maxCmPerHour = maxWaterPerHour != null ? decimal.Parse(maxWaterPerHour.Value) : 4;
                     if (differencePerHour > maxCmPerHour)
                     {
+                        _Logger.LogWarning($"Ivalid Value '{result.Value}' taking last Value '{result.LastValue}'. Value increased to fast. {difference} m3 in {hours/60} minutes.");
                         return false;
                     }
                 }
