@@ -264,7 +264,7 @@ namespace OcrWaterMeter.Server.Controllers
                                 {
                                     var horizontalIndex = pixelRow.IndexOf(pixel);
 
-                                  
+
                                     if (pixel.R > 150 && pixel.G < 50 && pixel.B < 50)
                                     {
                                         var verticalIndex = y;
@@ -349,12 +349,17 @@ namespace OcrWaterMeter.Server.Controllers
                     }
 
                     PostConfigValue(new ConfigValue(ConfigParameters.LastMeasurement, result.ValueDate.ToString()));
+
+                    _Logger.LogWarning($"Return Value '{result.Value}'");
                 }
                 else
                 {
+                    _Logger.LogWarning($"Ivalid Value '{result.Value}' taking last Value '{result.LastValue}'");
+
                     // Value is not possible => return last value
                     result.Value = result.LastValue;
                     result.LastValue = lastLastValue;
+
                 }
             }
             catch (Exception e)
@@ -367,6 +372,7 @@ namespace OcrWaterMeter.Server.Controllers
                 result.DigitalNumbers = digitalNumberCollection.FindAll();
                 result.AnalogNumbers = analogNumberCollection.FindAll();
                 result.Value = result.DigitalNumbers.Sum(x => x.Value * x.Factor) + result.AnalogNumbers.Sum(x => x.Value * x.Factor);
+                result.LastValue = result.DigitalNumbers.Sum(x => x.LastValue * x.Factor) + result.AnalogNumbers.Sum(x => x.LastValue * x.Factor);
             }
 
             return result;
