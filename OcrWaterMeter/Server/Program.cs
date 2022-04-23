@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddLiteDb(liteDbName);
-
+builder.Services.AddHealthChecks();
 
 builder.WebHost.UseStaticWebAssets();
 
@@ -27,6 +27,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
+    app.MapHealthChecks("/healthz");
     app.UseExceptionHandler("/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     // app.UseHsts();
