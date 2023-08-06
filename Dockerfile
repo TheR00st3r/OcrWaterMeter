@@ -45,7 +45,7 @@ RUN apt-get update -qqy && DEBIAN_FRONTEND=noninteractive apt-get install -y \
 RUN wget https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
 RUN dpkg -i packages-microsoft-prod.deb
 RUN rm packages-microsoft-prod.deb
-RUN apt-get update -qqy && apt-get install -y aspnetcore-runtime-6.0 libleptonica-dev libtesseract-dev libc6-dev
+RUN apt-get update -qqy && apt-get install -y aspnetcore-runtime-6.0 libleptonica-dev libtesseract-dev libc6-dev curl
 RUN eval apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 #copy OcrWaterMeter files
@@ -78,3 +78,4 @@ USER ocrwatermeter
 # run
 WORKDIR /OcrWaterMeter
 CMD [ "/bin/sh", "-c", "/OcrWaterMeter/OcrWaterMeter.Server" ]
+HEALTHCHECK --retries=3 --timeout=5s CMD curl --fail http://localhost:5000/healthz || exit
